@@ -1,0 +1,45 @@
+---
+title: "D.C. Airbnb Hunt"
+author: "Foo Fivers"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+## D.C. Airbnb Hunt
+
+For this project, Team Five has been propositioned by a visiting friend to recommend a neighborhood in DC that offers the best Airbnb deals. To provide an informed suggestion, the team will be using listing data from Airbnbs in DC to answer the question “What DC neighborhood offers Airbnb listings with the highest ratings at the lowest price?”. The team will provide an overall neighborhood suggestion for where to book the best Airbnb deal in DC as well as by type (entire home, private room, etc) and budget. . This data will come from `Inside Airbnb` , an open-source data tool providing web scraped Airbnb listing information by city.
+
+```{r, echo = FALSE, results = 'hide', message = FALSE}
+library(tidyverse)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+```
+## Data Preprocessing
+
+```{r}
+df <- read.csv('listings.csv')
+glimpse(df)
+```
+
+We can see that the data seems clean, but some columns need to have a different data type.
+
+```{r}
+df <- df %>% mutate(last_review = as.Date(last_review))
+```
+
+Checking for invalid values.
+
+```{r}
+df %>% summarise_all(list(invalid = ~ mean(is.na(.) || . == '')))
+```
+Most columns do not have invalid values. The columns `neighbourhood_group` and `license` need to be removed. 
+
+The columns `number_of_reviews` and `last_review` are NA when `number_of_reviews` is zero, so this does not need to be addressed.
+
+```{r}
+df <- df %>% select(-neighbourhood_group) %>% select(-license)
+```
