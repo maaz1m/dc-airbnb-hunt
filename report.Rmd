@@ -17,29 +17,30 @@ library(tidyverse)
 library(dplyr)
 library(knitr)
 library(kableExtra)
+library(readr)
 ```
 ## Data Preprocessing
 
 ```{r}
-df <- read.csv('listings.csv')
+df <- read.csv('listings_detailed.csv')
+df <- df %>% 
+  select(id, name, host_is_superhost, host_listings_count, neighbourhood_cleansed, latitude, longitude, room_type, bedrooms, beds, amenities, price, availability_60, number_of_reviews, review_scores_rating, reviews_per_month) %>% 
+  mutate(price = as.numeric(parse_number(price))) %>%
+  rename(neighbourhood = neighbourhood_cleansed)
 glimpse(df)
 ```
 
-We can see that the data seems clean, but some columns need to have a different data type.
+<!--
+Task bifurcation:
+EDA
+1 Price distribution - histogram + qq plot
+2 room_types, bedrooms, beds - bar
+3 reviews_scores_rating - histogram
+4 room_type vs price - boxplot
+5 neighbourhood vs price - boxplot
+6 neighbourhood vs review - boxplot
+7 review vs price - 2d dist plot
+8 amenities vs review and amenities vs price
+-->
 
-```{r}
-df <- df %>% mutate(last_review = as.Date(last_review))
-```
 
-Checking for invalid values.
-
-```{r}
-df %>% summarise_all(list(invalid = ~ mean(is.na(.) || . == '')))
-```
-Most columns do not have invalid values. The columns `neighbourhood_group` and `license` need to be removed. 
-
-The columns `number_of_reviews` and `last_review` are NA when `number_of_reviews` is zero, so this does not need to be addressed.
-
-```{r}
-df <- df %>% select(-neighbourhood_group) %>% select(-license)
-```
