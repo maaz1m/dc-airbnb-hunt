@@ -24,34 +24,159 @@ library(readr)
 ```{r}
 df <- read.csv('listings_detailed.csv')
 df <- df %>% 
-  select(id, name, host_is_superhost, host_listings_count, neighbourhood_cleansed, latitude, longitude, room_type, bedrooms, beds, amenities, price, availability_60, number_of_reviews, review_scores_rating, reviews_per_month) %>% 
+  select(id, name, host_is_superhost, host_listings_count, neighbourhood_cleansed, latitude, longitude, room_type, bedrooms, beds, amenities, price, availability_60, number_of_reviews, review_scores_rating, , review_scores_accuracy, review_scores_cleanliness,
+            review_scores_checkin, review_scores_communication, review_scores_location, review_scores_value, reviews_per_month) %>% 
   mutate(price = as.numeric(parse_number(price)),
          neighbourhood_cleansed = as.factor(neighbourhood_cleansed),
-         room_type = as.factor(room_type)) %>%
+         amenities = lengths(strsplit((str_sub(df$amenities, 2, -2)), ",")),
+         room_type = as.factor(room_type),
+         bedrooms = as.factor(bedrooms)) %>%
   rename(neighbourhood = neighbourhood_cleansed)
+df = na.omit(df)
+
 glimpse(df)
+#strsplit(x, " ")
+#df$amenities
 ```
 
-<!--
 
-(ricky)
-- Description: Column name, meaning, values, type
-- Overview
-- Price distribution - histogram + qq plot
-- Neighbourhoods - barchart?
+## Structure of cleaned df
 
-(atharva)
-- Room types
-- review score distribution
-- reviews_per_month distribution
+```{r}
+str(df)
+```
 
-EDA (adrienne)
-- whatever she has done already
+## Summary of price, amenities, number of reviews, room types, bedroom counts, neighborhoods, and multiple several review scores
 
-(maaz)
-- correlation plot
-- anova test
-- name keyword vs price and review
--->
+```{r}
+library(ezids)
+xkablesummary(select(df, price, amenities, number_of_reviews, review_scores_rating, review_scores_accuracy, review_scores_cleanliness, review_scores_checkin, review_scores_communication, review_scores_location, review_scores_value))
+summary(select(df, room_type))
+summary(select(df, bedrooms))
+summary(select(df, neighbourhood))
+```
+## Piechart of Room Types of all airbnbs
+
+```{r}
+library(ggplot2)
+
+
+d = as.data.frame(table(df$room_type))
+#barplot(d$Freq, main = "Barplot of Neighborhood Counts", xlab = "Neighborhoods", ylab = "")
+
+ggplot(d, aes(y = Freq, x = "", fill = Var1)) + geom_bar(width=3, stat = "identity")+ coord_polar("y", start = 0) + scale_fill_brewer(palette="Dark2") + labs(title = "Piechart of Room Types", x = "", y = "")
+
+```
+## Barplots of Neighborhoods
+
+```{r}
+library(ggplot2)
+
+v = as.data.frame(table(df$neighbourhood))
+v1 = v %>% slice(1:20)
+
+v2 = v %>% slice(21:50)
+
+par(mfrow = c(1,2))
+
+barplot(v1$Freq, main = "Barplot of Neighborhood Counts P1", ylab = "Count",  width = 5, names.arg = v1$Var1, las = 2, cex.names=0.6, col = 'darkred')
+
+barplot(v2$Freq, main = "Barplot of Neighborhood Counts P2", ylab = "Count",  width = 5, names.arg = v2$Var1, las = 2, cex.names=0.6, col = 'lightblue')
+
+```
+
+
+## Average price by room type
+## Average review rating by room type
+## Average amenities by room type
+```{r}
+price_room = df %>%
+  group_by(room_type) %>%
+  summarise_at(vars(price), list(price = mean))
+
+price_room = data.frame(price_room)
+
+price_room[order(-rank(price_room$price), decreasing = FALSE), ]
+```
+
+```{r}
+rating_room = df %>%
+  group_by(room_type) %>%
+  summarise_at(vars(review_scores_rating), list(review_scores_rating = mean))
+
+rating_room = data.frame(rating_room)
+rating_room[order(-rank(rating_room$review_scores_rating), decreasing = FALSE), ]
+```
+
+```{r}
+amenities_room = df %>%
+  group_by(room_type) %>%
+  summarise_at(vars(amenities), list(amenities = mean))
+
+amenities_room = data.frame(amenities_room)
+
+amenities_room[order(-rank(amenities_room$amenities), decreasing = FALSE), ]
+```
+
+## Average price by neighborhood
+## Average review rating by neighborhood
+## Average amenities by neighborhood
+```{r}
+price_neighbor = df %>%
+  group_by(neighbourhood) %>%
+  summarise_at(vars(price), list(price = mean))
+
+price_neighbor = data.frame(price_neighbor)
+
+price_neighbor[order(-rank(price_neighbor$price), decreasing = FALSE), ]
+```
+
+```{r}
+rating_neighbor = df %>%
+  group_by(neighbourhood) %>%
+  summarise_at(vars(review_scores_rating), list(review_scores_rating = mean))
+
+rating_neighbor = data.frame(rating_neighbor)
+#rating_neighbor
+rating_neighbor[order(-rank(rating_neighbor$review_scores_rating), decreasing = FALSE), ]
+```
+
+```{r}
+amenities_neighborhood = df %>%
+  group_by(neighbourhood) %>%
+  summarise_at(vars(amenities), list(amenities = mean))
+
+amenities_neighborhood = data.frame(amenities_neighborhood)
+
+amenities_neighborhood[order(-rank(amenities_neighborhood$amenities), decreasing = FALSE), ]
+```
+
+## Histogram: Price, Number of Reviews, Amenities without Outliers
+```{r}
+Price_No_Outlier = outlierKD2(df, price, rm=TRUE,  histogram=FALSE, qqplt=FALSE)
+
+par(mfrow = c(1,2))
+hist(Price_No_Outlier$price, main = 'Histogram of Price', xlim = c(0,350))
+qqnorm(Price_No_Outlier$price, main="Q-Q plot of Price") 
+qqline(Price_No_Outlier$price)
+```
+
+```{r}
+Number_of_Reviews_No_Outlier = outlierKD2(df, number_of_reviews, rm=TRUE,  histogram=FALSE, qqplt=FALSE) 
+
+par(mfrow = c(1,2))
+hist(Number_of_Reviews_No_Outlier$number_of_reviews, main = 'Histogram of Number of Reviews', xlim = c(0,200))
+qqnorm(Number_of_Reviews_No_Outlier$number_of_reviews, main="Q-Q plot of Number of Reviews") 
+qqline(Number_of_Reviews_No_Outlier$number_of_reviews)
+```
+
+```{r}
+Number_of_Amenities_No_Outlier = outlierKD2(df, amenities, rm=TRUE,  histogram=FALSE, qqplt=FALSE) 
+
+par(mfrow = c(1,2))
+hist(Number_of_Amenities_No_Outlier$amenities, main = 'Histogram of Amenities', xlim = c(0,65))
+qqnorm(Number_of_Amenities_No_Outlier$amenities, main="Q-Q plot of Amenities") 
+qqline(Number_of_Amenities_No_Outlier$amenities)
+```
 
 
