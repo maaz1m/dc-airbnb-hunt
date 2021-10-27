@@ -54,4 +54,15 @@ EDA (adrienne)
 - name keyword vs price and review
 -->
 
+```{r , results = 'T' }
+library(ggplot2)
+#histogram for room type
+ggplot(data = midterm, aes(room_type))+ stat_count(width = 0.5,col="red",fill="#03FDFC",alpha = 1) + labs(title = "Room type vs Frequency", x= "Room Type", y= "Frequency")
+#Histogram and QQ plot for Review scores
+review_score_noout = outlierKD2(midterm, review_scores_rating, rm=TRUE, boxplt=FALSE, histogram=TRUE, qqplt=TRUE) 
+
+#HIstogram and QQ plot for Reviews per month
+reviews_pm_noout = outlierKD2(midterm, reviews_per_month, rm=TRUE, boxplt=FALSE, histogram=TRUE, qqplt=TRUE)
+
+```
 
