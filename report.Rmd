@@ -34,16 +34,19 @@ glimpse(df)
 
 <!--
 
-(ricky, atharva)
+(ricky)
 - Description: Column name, meaning, values, type
 - Overview
 - Price distribution - histogram + qq plot
-- Neighbourhoods
+- Neighbourhoods - barchart?
+
+(atharva)
 - Room types
 - review score distribution
 - reviews_per_month distribution
 
 EDA (adrienne)
+- whatever she has done already
 
 (maaz)
 - correlation plot
