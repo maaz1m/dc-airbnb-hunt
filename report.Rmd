@@ -25,22 +25,30 @@ library(readr)
 df <- read.csv('listings_detailed.csv')
 df <- df %>% 
   select(id, name, host_is_superhost, host_listings_count, neighbourhood_cleansed, latitude, longitude, room_type, bedrooms, beds, amenities, price, availability_60, number_of_reviews, review_scores_rating, reviews_per_month) %>% 
-  mutate(price = as.numeric(parse_number(price))) %>%
+  mutate(price = as.numeric(parse_number(price)),
+         neighbourhood_cleansed = as.factor(neighbourhood_cleansed),
+         room_type = as.factor(room_type)) %>%
   rename(neighbourhood = neighbourhood_cleansed)
 glimpse(df)
 ```
 
 <!--
-Task bifurcation:
-EDA
-1 Price distribution - histogram + qq plot
-2 room_types, bedrooms, beds - bar
-3 reviews_scores_rating - histogram
-4 room_type vs price - boxplot
-5 neighbourhood vs price - boxplot
-6 neighbourhood vs review - boxplot
-7 review vs price - 2d dist plot
-8 amenities vs review and amenities vs price
+
+(ricky, atharva)
+- Description: Column name, meaning, values, type
+- Overview
+- Price distribution - histogram + qq plot
+- Neighbourhoods
+- Room types
+- review score distribution
+- reviews_per_month distribution
+
+EDA (adrienne)
+
+(maaz)
+- correlation plot
+- anova test
+- name keyword vs price and review
 -->
 
 
