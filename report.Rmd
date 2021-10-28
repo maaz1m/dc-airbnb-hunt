@@ -442,6 +442,7 @@ means_df_rt_select[2:5]%>%
 Now we can map by room type suggestions
 
 ```{r}
+#color palette
 
 pal <- colorFactor(c("#51c5ed","#C3EB78","#ff616f","#3D348B"), domain = c("Entire home/apt","Shared room","Private room","Hotel room"))
 
