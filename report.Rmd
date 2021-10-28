@@ -418,10 +418,17 @@ ggplot(means_df_rt) + geom_point(aes(x=review_scores_rating, y=price, colour=nei
         legend.position="right")+
         labs(colour = "Neighborhood", x="Mean Rating", y="Mean Price")+
         ggtitle("Mean Price by Mean Rating in DC Neighborhoods")+ geom_hline(yintercept=mean(means_df_rt_eha$price), linetype="dashed", color = "#51c5ed")+
-   geom_vline(xintercept=mean(means_df_rt_eha$review_scores_rating), linetype="dashed", color = "#51c5ed")+ geom_hline(yintercept=mean(means_df_rt_pr$price), linetype="dashed", color = "#C3EB78")+
-   geom_vline(xintercept=mean(means_df_rt_pr$review_scores_rating), linetype="dashed", color = "#C3EB78")+ geom_hline(yintercept=mean(means_df_rt_sr$price), linetype="dashed", color = "#ff616f")+
-   geom_vline(xintercept=mean(means_df_rt_sr$review_scores_rating), linetype="dashed", color = "#ff616f")+ geom_hline(yintercept=mean(means_df_rt_hr$price), linetype="dashed", color = "#3D348B")+
-   geom_vline(xintercept=mean(means_df_rt_hr$review_scores_rating), linetype="dashed", color = "#3D348B")
+        annotate("text", x=2.7, y=(mean(means_df_rt_eha$price)+8), label="Entire home/apt avg", color = "#51c5ed",size=3)+
+        geom_vline(xintercept=mean(means_df_rt_eha$review_scores_rating), linetype="dashed", color = "#51c5ed")+       
+        geom_hline(yintercept=mean(means_df_rt_pr$price), linetype="dashed", color = "#C3EB78")+ 
+        annotate("text", x=2.6, y=(mean(means_df_rt_pr$price)+8), label="Private room avg", color = "#C3EB78",size=3)+
+        geom_vline(xintercept=mean(means_df_rt_pr$review_scores_rating), linetype="dashed", color = "#C3EB78")+
+        geom_hline(yintercept=mean(means_df_rt_sr$price), linetype="dashed", color = "#ff616f")+
+        annotate("text", x=2.6, y=(mean(means_df_rt_sr$price)+8), label="Shared room avg", color = "#ff616f",size=3)+
+        geom_vline(xintercept=mean(means_df_rt_sr$review_scores_rating), linetype="dashed", color = "#ff616f")+
+        geom_hline(yintercept=mean(means_df_rt_hr$price), linetype="dashed", color = "#3D348B")+
+        annotate("text", x=2.6, y=(mean(means_df_rt_hr$price)+8), label="Hotel room avg", color = "#3D348B",size=3)+
+        geom_vline(xintercept=mean(means_df_rt_hr$review_scores_rating), linetype="dashed", color = "#3D348B")
 
 
 means_df_rt_eha_select <- means_df_rt_eha[which(means_df_rt_eha$price<mean(means_df_rt_eha$price) & means_df_rt_eha$review_scores_rating > mean(means_df_rt_eha$review_scores_rating)),]
@@ -434,7 +441,10 @@ means_df_rt_hr_select <- means_df_rt_hr[which(means_df_rt_hr$price<mean(means_df
 
 means_df_rt_select <- rbind(means_df_rt_eha_select,means_df_rt_pr_select,means_df_rt_sr_select,means_df_rt_hr_select)
 
-means_df_rt_select[2:5]%>% 
+#id for neighborhoods
+means_df_rt_select$ID <- seq.int(nrow(means_df_rt_select))
+
+means_df_rt_select[c(9,2:5)]%>% 
   kbl() %>%
   kable_paper("hover", full_width = F)
 ```
@@ -446,6 +456,9 @@ Now we can map by room type suggestions
 
 pal <- colorFactor(c("#51c5ed","#C3EB78","#ff616f","#3D348B"), domain = c("Entire home/apt","Shared room","Private room","Hotel room"))
 
+
+
+
 # create leaflet map 
 
 map2 <- leaflet(means_df_rt_select) %>%
@@ -454,14 +467,15 @@ map2 <- leaflet(means_df_rt_select) %>%
                    lat = ~latitude, 
                    radius=~sqrt(Freq),
                    color=~pal(room_type),
-                   label=~neighbourhood_short,
-                   labelOptions = labelOptions(noHide = F, textOnly = T, textsize = "7px"),
+                   label=~ID,
+                   labelOptions = labelOptions(noHide = T, textOnly = T, textsize = "7px",direction = 'center',style = list(
+        "color" = "white")),
                    stroke = FALSE, 
                    fillOpacity = 0.6)%>% 
 addLegend("bottomright",pal = pal, values = ~means_df_rt_select$room_type, opacity = 1, title = "Room Type")
 
 map2 %>%  addProviderTiles(providers$CartoDB.Positron)
 
-#add title
+
 
 ```
