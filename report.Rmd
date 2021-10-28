@@ -461,6 +461,6 @@ addLegend("bottomright",pal = pal, values = ~means_df_rt_select$room_type, opaci
 
 map2 %>%  addProviderTiles(providers$CartoDB.Positron)
 
-
+#add title
 
 ```
