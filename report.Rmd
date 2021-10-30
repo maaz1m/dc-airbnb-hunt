@@ -307,27 +307,33 @@ amenities_neighborhood[order(-rank(amenities_neighborhood$amenities), decreasing
 ```
 
 ## Histogram: Price, Number of Reviews, Amenities without Outliers
-```{r}
-Price_No_Outlier = outlierKD2(df, price, rm=TRUE,  histogram=FALSE, qqplt=FALSE)
+```{r, fig.show='hide'}
+Price_No_Outlier = outlierKD2(df, price, rm=TRUE)
+```
 
+```{r}
 par(mfrow = c(1,2))
 hist(Price_No_Outlier$price, main = 'Histogram of Price', xlim = c(0,350))
 qqnorm(Price_No_Outlier$price, main="Q-Q plot of Price")
 qqline(Price_No_Outlier$price)
 ```
 
-```{r}
-Number_of_Reviews_No_Outlier = outlierKD2(df, number_of_reviews, rm=TRUE,  histogram=FALSE, qqplt=FALSE)
+```{r, fig.show='hide'}
+Number_of_Reviews_No_Outlier = outlierKD2(df, number_of_reviews, rm=TRUE)
+```
 
+```{r}
 par(mfrow = c(1,2))
 hist(Number_of_Reviews_No_Outlier$number_of_reviews, main = 'Histogram of Number of Reviews', xlim = c(0,200))
 qqnorm(Number_of_Reviews_No_Outlier$number_of_reviews, main="Q-Q plot of Number of Reviews")
 qqline(Number_of_Reviews_No_Outlier$number_of_reviews)
 ```
 
-```{r}
-Number_of_Amenities_No_Outlier = outlierKD2(df, amenities, rm=TRUE,  histogram=FALSE, qqplt=FALSE)
+```{r, fig.show='hide'}
+Number_of_Amenities_No_Outlier = outlierKD2(df, amenities, rm=TRUE)
+```
 
+```{r}
 par(mfrow = c(1,2))
 hist(Number_of_Amenities_No_Outlier$amenities, main = 'Histogram of Amenities', xlim = c(0,65))
 qqnorm(Number_of_Amenities_No_Outlier$amenities, main="Q-Q plot of Amenities")
