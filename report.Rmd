@@ -6,6 +6,7 @@ output:
   prettydoc::html_pretty:
     theme: architect
     highlight: github
+    
 ---
 
 ## D.C. Airbnb Hunt
@@ -311,31 +312,46 @@ Price_No_Outlier = outlierKD2(df, price, rm=TRUE,  histogram=FALSE, qqplt=FALSE)
 
 par(mfrow = c(1,2))
 hist(Price_No_Outlier$price, main = 'Histogram of Price', xlim = c(0,350))
-qqnorm(Price_No_Outlier$price, main="Q-Q plot of Price") 
+qqnorm(Price_No_Outlier$price, main="Q-Q plot of Price")
 qqline(Price_No_Outlier$price)
 ```
 
 ```{r}
-Number_of_Reviews_No_Outlier = outlierKD2(df, number_of_reviews, rm=TRUE,  histogram=FALSE, qqplt=FALSE) 
+Number_of_Reviews_No_Outlier = outlierKD2(df, number_of_reviews, rm=TRUE,  histogram=FALSE, qqplt=FALSE)
 
 par(mfrow = c(1,2))
 hist(Number_of_Reviews_No_Outlier$number_of_reviews, main = 'Histogram of Number of Reviews', xlim = c(0,200))
-qqnorm(Number_of_Reviews_No_Outlier$number_of_reviews, main="Q-Q plot of Number of Reviews") 
+qqnorm(Number_of_Reviews_No_Outlier$number_of_reviews, main="Q-Q plot of Number of Reviews")
 qqline(Number_of_Reviews_No_Outlier$number_of_reviews)
 ```
 
 ```{r}
-Number_of_Amenities_No_Outlier = outlierKD2(df, amenities, rm=TRUE,  histogram=FALSE, qqplt=FALSE) 
+Number_of_Amenities_No_Outlier = outlierKD2(df, amenities, rm=TRUE,  histogram=FALSE, qqplt=FALSE)
 
 par(mfrow = c(1,2))
 hist(Number_of_Amenities_No_Outlier$amenities, main = 'Histogram of Amenities', xlim = c(0,65))
-qqnorm(Number_of_Amenities_No_Outlier$amenities, main="Q-Q plot of Amenities") 
+qqnorm(Number_of_Amenities_No_Outlier$amenities, main="Q-Q plot of Amenities")
 qqline(Number_of_Amenities_No_Outlier$amenities)
 ```
 
 ## Compare Average Rank and Price Across Neighborhoods and Room_Type
 
 To find the neighborhood that has the best AirBnB for rating and price, we will compare the mean price vs. mean rating for our 10 neighborhoods. 
+
+First, we will run an ANOVA to see if there is any significant difference between the price and rating averages across neighborhoods, then we will graph and select our best neighborhood selection. 
+
+```{r}
+
+#anova test to compare mean price
+anovaRes_price1 <-  aov(price ~ neighbourhood, data=df_175)
+xkabledply(anovaRes_price1, title = "Price by Neighborhood ANOVA")
+
+#anova test to compare mean rating
+anovaRes_rating1 <-  aov(review_scores_rating ~  neighbourhood, data=df_175)
+xkabledply(anovaRes_rating1, title = "Rating by Neighborhood ANOVA")
+
+```
+What we find in both of these Anova results is that there is a significant difference between average price and rating by neighborhood. We will use this knowledge to assume there must be a DC neighborhood with the better prices/ratings than others. 
 
 ```{r}
 #create mean columns in dataframe
@@ -363,15 +379,20 @@ ggplot(means_df) + geom_point(aes(x=review_scores_rating, y=price, colour=neighb
 
 means_df_select <- means_df[which(means_df$price<mean(means_df$price) & means_df$review_scores_rating > mean(means_df$review_scores_rating)),]
 
-means_df_select[2:4]%>% 
+#id for neighborhoods
+means_df_select$ID <- seq.int(nrow(means_df_select))
+
+means_df_select[c(8,2:4)]%>% 
   kbl() %>%
   kable_paper("hover", full_width = F)
 
 ```
 
-We find that we have `r nrow(means_df_select)` neighborhoods to suggest to our friend where the overall AirBnB price is less than DC's average and where the rating is greater than DC's average. We can map these out below. 
+We find that we have `r nrow(means_df_select)` neighborhoods to suggest to our friend where the overall AirBnB price is less than DC's averaEntire home/aptge and where the rating is greater than DC's average. We can map these out below. 
 
 ```{r}
+pal1 <- colorFactor(c("#72B000","#00BFC4","#7997ff"), domain = c("Columbia Height", "Edgewood, Bloom", "Kalorama Height"))
+
 
 # create leaflet map 
 
@@ -380,11 +401,14 @@ map <- leaflet(means_df_select) %>%
   addCircleMarkers(lng = ~longitude,
                    lat = ~latitude, 
                    radius=~sqrt(Freq),
-                   color="#48A9A6",
-                   label=~neighbourhood_short,
-                   labelOptions = labelOptions(noHide = T, textOnly = TRUE, textsize = "11px"),
+                   color=~pal1(neighbourhood_short),
+                   label=~ID,
+                   labelOptions = labelOptions(noHide = T, textOnly = T, textsize = "7px",direction = 'center',style = list(
+        "color" = "white")),
                    stroke = FALSE, 
-                   fillOpacity = 0.7)
+                   fillOpacity = 0.7)%>%
+  addLegend("bottomright",pal = pal1, values = ~means_df_select$neighbourhood_short, opacity = 1, title = "Room Type")
+
 
 map %>%  addProviderTiles(providers$CartoDB.Positron)
 
@@ -394,8 +418,22 @@ map %>%  addProviderTiles(providers$CartoDB.Positron)
 
 This is helpful, but we should probably include room type to help our friend know if there is a room type/neighboorhood combination that would be the rest to search for. 
 
-```{r}
+Let's run an anova to see if there is a significant difference between mean price and mean rating by room type.
 
+```{r}
+#anova test to compare mean price
+anovaRes_price <-  aov(price ~ room_type, data=means_df_rt)
+xkabledply(anovaRes_price, title = "Price ANOVA")
+
+#anova test to compare mean rating
+anovaRes_rating <-  aov(review_scores_rating ~ room_type, data=means_df_rt)
+xkabledply(anovaRes_rating, title = "Rating ANOVA")
+```
+What we find is that for price, room type is something to consider as there are significant differences between the mean prices. However, rating is not as much of a comparative factor when determining a room type to select on AirBnB as there is no significant differences between the mean.
+
+We will show our friend an analysis where we look for the best true values by room type where the AirBnBs have a price lower than the mean and rating higher than the mean. However, rating should not be considered when choosing between different room types.
+
+```{r}
 
 means_df_rt_eha <- means_df_rt[which(means_df_rt$room_type=="Entire home/apt"),]
 
@@ -440,6 +478,9 @@ means_df_rt_sr_select <- means_df_rt_sr[which(means_df_rt_sr$price<mean(means_df
 means_df_rt_hr_select <- means_df_rt_hr[which(means_df_rt_hr$price<mean(means_df_rt_hr$price) & means_df_rt_hr$review_scores_rating > mean(means_df_rt_hr$review_scores_rating)),]
 
 means_df_rt_select <- rbind(means_df_rt_eha_select,means_df_rt_pr_select,means_df_rt_sr_select,means_df_rt_hr_select)
+```
+
+```{r}
 
 #id for neighborhoods
 means_df_rt_select$ID <- seq.int(nrow(means_df_rt_select))
