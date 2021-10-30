@@ -24,6 +24,9 @@ library(ggplot2)
 library(knitr)
 library(kableExtra)
 library(leaflet)
+library(tidytext)
+library(stringr)
+library(wordcloud)
 ```
 ## Data Preprocessing
 
@@ -531,3 +534,39 @@ map2 %>%  addProviderTiles(providers$CartoDB.Positron)
 
 
 ```
+
+
+## Do names of listings affect reviews and price?
+
+All listings try to keep catchy and attractive names to get clicks by prospective guests. We want to investigate whether names with certain characteristics are better or worse than others.
+
+```{r}
+
+data(stop_words)
+
+corpus <- df %>% select(id, name) %>%
+  unnest_tokens(word, name) %>% filter(!word %in% stop_words$word, str_detect(word, "[a-z]"))
+
+all_words <- corpus %>% group_by(word) %>% dplyr::summarise(count = n())
+
+wordcloud(words = all_words$word, freq = all_words$count, , min.freq = 50, colors=brewer.pal(8, "Dark2"))
+```
+
+
+The wordcloud shows that certain key words such as metro, basement, private, townhouse, metro etc are present in a lot of listings.
+
+```{r}
+df_corpus <- corpus %>% left_join(df)
+corpus_agg <- df_corpus %>% 
+  group_by(word) %>% 
+  dplyr::summarise(avg_rating = mean(review_scores_rating), avg_price = mean(price), count = n()) %>% 
+  filter(count > 150)
+
+ggplot(corpus_agg, aes(x=avg_rating, y=avg_price)) + geom_text(label=corpus_agg$word, aes(size=count, color = word)) + scale_size_continuous(range = c(2, 10)) + guides(color=FALSE)
+
+```
+
+* Cozy places are cheaper but worse than spacious ones.
+* Houses are pricier than condos with no difference in ratings. 
+* Parking places are more expensive than those near a metro, with no difference in ratings.
+* Historic places are the best rated.
