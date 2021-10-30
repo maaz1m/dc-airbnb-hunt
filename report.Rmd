@@ -30,6 +30,10 @@ library(leaflet)
 
 ```{r}
 df <- read.csv('listings_detailed.csv')
+#nrow(df)
+#print('')
+colnames(df)
+
 df <- df %>% 
   dplyr::select(id, name, host_is_superhost, host_listings_count, neighbourhood_cleansed, latitude, longitude, room_type, bedrooms, beds, amenities, price, availability_60, number_of_reviews, review_scores_rating,  review_scores_accuracy, review_scores_cleanliness,
             review_scores_checkin, review_scores_communication, review_scores_location, review_scores_value, reviews_per_month) %>% 
@@ -78,14 +82,15 @@ d = as.data.frame(table(df$room_type))
 
 group.colors = c("Entire home/apt" ="#51c5ed","Shared room"="#C3EB78","Private room"="#ff616f","Hotel room"="#3D348B")
 
-ggplot(d, aes(y = Freq, x = "", fill = Var1)) + geom_bar(width=3, stat = "identity")+ coord_polar("y", start = 0)  + labs(title = "DC AirBnB Pie Chart of Room Types", x = "", y = "")+ theme(
+ggplot(d, aes(y = Freq, x = "", fill = Var1)) + geom_bar(width=3, stat = "identity")+ coord_polar("y", start = 0)  + labs(title = "DC AirBnB Pie Chart of Room Types", x = "", y = "")+ 
+  theme(
         legend.title=element_text(size=9),
         plot.title = element_text(color="black", face="bold", size=16, hjust=0),
         panel.grid.major = element_line(colour = "grey90", size = 0.2),
         panel.grid.minor = element_blank(),
         panel.background = element_rect(fill = 'white'),legend.position="right")+
         scale_fill_manual(values=group.colors)+
-        labs(fill = "Room Type", )
+        labs(fill = "Room Type")
 
 ```
 ## Frequency of AirBnBs in Neighorhood by Room Type
