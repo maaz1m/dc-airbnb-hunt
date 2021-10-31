@@ -243,6 +243,8 @@ Now we will start to look into the neighborhoods in DC. First, we will compare p
 ```{r}
 #subset data where frequency is greater than 175
 df_175 <-  df_freq[ which(df_freq$Freq>175), ]
+
+str(df_175)
 ```
 
 Our subsetted data set now has `r n_distinct(df_175$neighbourhood)` neighborhoods with `r nrow(df_175)` data points to analyze. 
@@ -444,6 +446,12 @@ means_df_rt_select <- rbind(means_df_rt_eha_select,means_df_rt_pr_select,means_d
 #id for neighborhoods
 means_df_rt_select$ID <- seq.int(nrow(means_df_rt_select))
 means_df_rt_select[c(9,2:5)]%>% 
+  kbl() %>%
+  kable_paper("hover", full_width = F)
+
+#short for presentation
+
+means_df_rt_select[c(9,2:3)]%>% 
   kbl() %>%
   kable_paper("hover", full_width = F)
 ```
