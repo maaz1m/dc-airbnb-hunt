@@ -13,6 +13,8 @@ output:
 
 For this project, Team Five has been propositioned by a visiting friend to recommend a neighborhood in DC that offers the best Airbnb deals. To provide an informed suggestion, the team will be using listing data from Airbnbs in DC to answer the question “What DC neighborhood offers Airbnb listings with the highest ratings at the lowest price?”. The team will provide an overall neighborhood suggestion for where to book the best Airbnb deal in DC as well as by type (entire home, private room, etc) and budget. . This data will come from `Inside Airbnb` , an open-source data tool providing web scraped Airbnb listing information by city.
 
+
+
 ```{r, echo = FALSE, results = 'hide', message = FALSE}
 library(tidyverse)
 library(dplyr)
@@ -21,9 +23,10 @@ library(kableExtra)
 library(readr)
 library(plyr)
 library(ggplot2)
-library(knitr)
 library(kableExtra)
 library(leaflet)
+library(magrittr)
+
 ```
 ## Data Preprocessing
 
@@ -54,8 +57,15 @@ To begin the AirBnB search for our friend, we must prepare our data for analysis
 ## Structure of cleaned df
 
 
-```{r}
+```{r, out.width="200%"}
 str(df)
+
+data.frame(variable = names(df),
+           classe = sapply(df, typeof),
+           first_values = sapply(df, function(x) paste0(head(x,2),  collapse = ", ")),
+           row.names = NULL) %>% 
+  kable()
+
 ```
 
 
@@ -67,6 +77,7 @@ xkablesummary(dplyr::select(df, price, amenities, number_of_reviews, review_scor
 summary(dplyr::select(df, room_type))
 summary(dplyr::select(df, bedrooms))
 summary(dplyr::select(df, neighbourhood))
+
 ```
 ## Piechart of Room Types of all airbnbs
 
@@ -112,7 +123,7 @@ ggplot(df_freq,aes(x=reorder(neighbourhood_short, neighbourhood_short, function(
         panel.background = element_rect(fill = 'white'),legend.position="top")+
         scale_fill_manual(values=group.colors)+
         labs(fill = "Room Type", x="Neighborhood", y="# of AirBnBs Listed")+
-        ggtitle("Frequency of AirBnBs by Neighborhood and Room Type") 
+        ggtitle("Frequency of AirBnBs by Neighborhood and Room Type")
 
 #v = as.data.frame(table(df$neighbourhood))
 #v1 = v %>% slice(1:20)
@@ -215,7 +226,7 @@ amenities_room[order(-rank(amenities_room$amenities), decreasing = FALSE), ]%>%
 
 ## Average price by neighborhood
 
-Now we will start to look into the neighborhoods in DC. First, we will compare price across the neighborhoods. Before we do this, we should narrow down the neighborhood options for our friend. With our initial dataset, we find there are `r n_distinct(df$neighbourhood)` DC neighborhoods we could recommend our friend look for an AirBnB. We want to make sure that our friend has a large number of AirBnBs to select from our final neighborhood selection. So, we will now only include only neighborhoods with over 200 AirBnB units listed with review and pricing data. 
+Now we will start to look into the neighborhoods in DC. First, we will compare price across the neighborhoods. Before we do this, we should narrow down the neighborhood options for our friend. With our initial dataset, we find there are `r n_distinct(df$neighbourhood)` DC neighborhoods we could recommend our friend look for an AirBnB. We want to make sure that our friend has a large number of AirBnBs to select from our final neighborhood selection. So, we will now only include only neighborhoods with over 175 AirBnB units listed with review and pricing data. 
 
 ```{r}
 #subset data where frequency is greater than 175
@@ -230,18 +241,18 @@ We can now analyze price across neighborhoods. To better view this graph, we wil
 
 ggplot(df_175,aes(x=neighbourhood_short, y=price))+ geom_boxplot(outlier.shape = NA ) +
 coord_cartesian(ylim = quantile(df$price, c(.0, .95)))+
-  geom_jitter(width=0.15, alpha=.05, aes(colour=neighbourhood_short))+
-  theme(axis.text.x = element_text(angle = 90, size=7))+
+  geom_jitter(width=0.15, alpha=.2, aes(colour=neighbourhood_short))+
+  theme(axis.text.x = element_text(angle = 90, size=9))+
   theme(axis.text.x = element_text(angle = 90),
-        axis.title.x = element_text(size = 9),
-        axis.title.y = element_text(size = 9),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
         
         plot.title = element_text(color="black", face="bold", size=16, hjust=0),
         panel.grid.major = element_line(colour = "grey90", size = 0.2),
         panel.grid.minor = element_blank(),
         panel.background = element_rect(fill = 'white'),
         legend.position = "none")+
-        labs( x="Room Type", y="Price")+
+        labs( x="Neighborhood", y="Price")+
         ggtitle("Box Plot of Price Distribution by Neighborhood")
 
 ```
@@ -254,19 +265,20 @@ Next we will look at rating across neighborhoods. To better view this graph, we 
 
 ggplot(df_175,aes(x=neighbourhood_short, y=review_scores_rating))+ geom_boxplot(outlier.shape = NA ) +
 coord_cartesian(ylim = quantile(df$review_scores_rating, c(.02, 1)))+
-  geom_jitter(width=0.15, alpha=.05, aes(colour=neighbourhood_short))+
-  theme(axis.text.x = element_text(angle = 90, size=7))+
+  geom_jitter(width=0.15, alpha=.2, aes(colour=neighbourhood_short))+
+  theme(axis.text.x = element_text(angle = 90, size=9))+
   theme(axis.text.x = element_text(angle = 90),
-        axis.title.x = element_text(size = 9),
-        axis.title.y = element_text(size = 9),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
         
         plot.title = element_text(color="black", face="bold", size=16, hjust=0),
         panel.grid.major = element_line(colour = "grey90", size = 0.2),
         panel.grid.minor = element_blank(),
         panel.background = element_rect(fill = 'white'),
         legend.position = "none")+
-        labs( x="Room Type", y="Price")+
+        labs( x="Neighborhood", y="Rating")+
         ggtitle("Box Plot of Rating Distribution by Neighborhood")
+
 
 ```
 ## Average amenities by neighborhood
@@ -306,33 +318,33 @@ amenities_neighborhood[order(-rank(amenities_neighborhood$amenities), decreasing
   kable_paper("hover", full_width = F)
 ```
 
-## Histogram: Price, Number of Reviews, Amenities without Outliers
-```{r}
-Price_No_Outlier = outlierKD2(df, price, rm=TRUE,  histogram=FALSE, qqplt=FALSE)
+<!-- ## Histogram: Price, Number of Reviews, Amenities without Outliers -->
+<!-- ```{r} -->
+<!-- Price_No_Outlier = outlierKD2(df, price, rm=TRUE,  histogram=FALSE, qqplt=FALSE) -->
 
-par(mfrow = c(1,2))
-hist(Price_No_Outlier$price, main = 'Histogram of Price', xlim = c(0,350))
-qqnorm(Price_No_Outlier$price, main="Q-Q plot of Price")
-qqline(Price_No_Outlier$price)
-```
+<!-- par(mfrow = c(1,2)) -->
+<!-- hist(Price_No_Outlier$price, main = 'Histogram of Price', xlim = c(0,350)) -->
+<!-- qqnorm(Price_No_Outlier$price, main="Q-Q plot of Price") -->
+<!-- qqline(Price_No_Outlier$price) -->
+<!-- ``` -->
 
-```{r}
-Number_of_Reviews_No_Outlier = outlierKD2(df, number_of_reviews, rm=TRUE,  histogram=FALSE, qqplt=FALSE)
+<!-- ```{r} -->
+<!-- Number_of_Reviews_No_Outlier = outlierKD2(df, number_of_reviews, rm=TRUE,  histogram=FALSE, qqplt=FALSE) -->
 
-par(mfrow = c(1,2))
-hist(Number_of_Reviews_No_Outlier$number_of_reviews, main = 'Histogram of Number of Reviews', xlim = c(0,200))
-qqnorm(Number_of_Reviews_No_Outlier$number_of_reviews, main="Q-Q plot of Number of Reviews")
-qqline(Number_of_Reviews_No_Outlier$number_of_reviews)
-```
+<!-- par(mfrow = c(1,2)) -->
+<!-- hist(Number_of_Reviews_No_Outlier$number_of_reviews, main = 'Histogram of Number of Reviews', xlim = c(0,200)) -->
+<!-- qqnorm(Number_of_Reviews_No_Outlier$number_of_reviews, main="Q-Q plot of Number of Reviews") -->
+<!-- qqline(Number_of_Reviews_No_Outlier$number_of_reviews) -->
+<!-- ``` -->
 
-```{r}
-Number_of_Amenities_No_Outlier = outlierKD2(df, amenities, rm=TRUE,  histogram=FALSE, qqplt=FALSE)
+<!-- ```{r} -->
+<!-- Number_of_Amenities_No_Outlier = outlierKD2(df, amenities, rm=TRUE,  histogram=FALSE, qqplt=FALSE) -->
 
-par(mfrow = c(1,2))
-hist(Number_of_Amenities_No_Outlier$amenities, main = 'Histogram of Amenities', xlim = c(0,65))
-qqnorm(Number_of_Amenities_No_Outlier$amenities, main="Q-Q plot of Amenities")
-qqline(Number_of_Amenities_No_Outlier$amenities)
-```
+<!-- par(mfrow = c(1,2)) -->
+<!-- hist(Number_of_Amenities_No_Outlier$amenities, main = 'Histogram of Amenities', xlim = c(0,65)) -->
+<!-- qqnorm(Number_of_Amenities_No_Outlier$amenities, main="Q-Q plot of Amenities") -->
+<!-- qqline(Number_of_Amenities_No_Outlier$amenities) -->
+<!-- ``` -->
 
 ## Compare Average Rank and Price Across Neighborhoods and Room_Type
 
@@ -403,7 +415,7 @@ map <- leaflet(means_df_select) %>%
                    radius=~sqrt(Freq),
                    color=~pal1(neighbourhood_short),
                    label=~ID,
-                   labelOptions = labelOptions(noHide = T, textOnly = T, textsize = "7px",direction = 'center',style = list(
+                   labelOptions = labelOptions(noHide = T, textOnly = T, textsize = "12px",direction = 'center',style = list(
         "color" = "white")),
                    stroke = FALSE, 
                    fillOpacity = 0.7)%>%
@@ -422,12 +434,12 @@ Let's run an anova to see if there is a significant difference between mean pric
 
 ```{r}
 #anova test to compare mean price
-anovaRes_price2 <-  aov(price ~ room_type, data=means_df_rt)
-xkabledply(anovaRes_price2, title = "Price ANOVA")
+anovaRes_price2 <-  aov(price ~ room_type, data=df_freq)
+xkabledply(anovaRes_price2, title = "Price by Room Type ANOVA")
 
 #anova test to compare mean rating
-anovaRes_rating2 <-  aov(review_scores_rating ~ room_type, data=means_df_rt)
-xkabledply(anovaRes_rating2, title = "Rating ANOVA")
+anovaRes_rating2 <-  aov(review_scores_rating ~ room_type, data=df_freq)
+xkabledply(anovaRes_rating2, title = "Rating by Room Type Rating ANOVA")
 ```
 What we find is that for price, room type is something to consider as there are significant differences between the mean prices. However, rating is not as much of a comparative factor when determining a room type to select on AirBnB as there is no significant differences between the mean.
 
@@ -509,7 +521,7 @@ map2 <- leaflet(means_df_rt_select) %>%
                    radius=~sqrt(Freq),
                    color=~pal2(room_type),
                    label=~ID,
-                   labelOptions = labelOptions(noHide = T, textOnly = T, textsize = "7px",direction = 'center',style = list(
+                   labelOptions = labelOptions(noHide = T, textOnly = T, textsize = "12px",direction = 'center',style = list(
         "color" = "white")),
                    stroke = FALSE, 
                    fillOpacity = 0.6)%>% 
@@ -517,6 +529,6 @@ addLegend("bottomright",pal = pal2, values = ~means_df_rt_select$room_type, opac
 
 map2 %>%  addProviderTiles(providers$CartoDB.Positron)
 
-
+xkabledply(means_df, title="Subset Neighborhood Means")
 
 ```
