@@ -39,8 +39,6 @@ knitr::opts_chunk$set(warning = FALSE)
 
 ```{r}
 df <- read.csv('listings_detailed.csv')
-#nrow(df)
-#print('')
 colnames(df)
 df <- df %>% 
   dplyr::select(id, name, host_is_superhost, host_listings_count, neighbourhood_cleansed, latitude, longitude, room_type, bedrooms, beds, amenities, price, availability_60, number_of_reviews, review_scores_rating,  review_scores_accuracy, review_scores_cleanliness,
@@ -416,10 +414,18 @@ Let's run an anova to see if there is a significant difference between mean pric
 
 ```{r}
 #anova test to compare mean price
+
+anovaRes_price2 <-  aov(price ~ room_type, data=means_df_rt)
+xkabledply(anovaRes_price2, title = "Price by Room Type ANOVA")
+
+#anova test to compare mean rating
+anovaRes_rating2 <-  aov(review_scores_rating ~ room_type, data=means_df_rt)
+
 anovaRes_price2 <-  aov(price ~ room_type, data=df_175)
 xkabledply(anovaRes_price2, title = "Price by Room Type ANOVA")
 #anova test to compare mean rating
 anovaRes_rating2 <-  aov(review_scores_rating ~ room_type, data=df_175)
+
 xkabledply(anovaRes_rating2, title = "Rating by Room Type ANOVA")
 ```
 What we find is that for price and rating, room type is something to consider as there are significant differences between the mean prices. 
