@@ -362,11 +362,19 @@ ggplot(means_df) + geom_point(aes(x=review_scores_rating, y=price, colour=neighb
         legend.position="right")+
         labs(colour = "Neighborhood", x="Mean Rating", y="Mean Price")+
         ggtitle("Mean Price by Mean Rating for DC Neighborhoods")+ geom_hline(yintercept=mean(means_df$price), linetype="dashed", color = "red")+
-   geom_vline(xintercept=mean(means_df$review_scores_rating), linetype="dashed", color = "red")
+        annotate("text", x=4.635, y=(mean(means_df$price)+3), label="Overall Price Avg", color = "red",size=3)+
+   geom_vline(xintercept=mean(means_df$review_scores_rating), linetype="dashed", color = "red")+
+        annotate("text", x=(mean(means_df$review_scores_rating)+.023), y=122.7, label="Overall Rating Avg", color = "red",size=3)
 means_df_select <- means_df[which(means_df$price<mean(means_df$price) & means_df$review_scores_rating > mean(means_df$review_scores_rating)),]
 #id for neighborhoods
 means_df_select$ID <- seq.int(nrow(means_df_select))
 means_df_select[c(8,2:4)]%>% 
+  kbl() %>%
+  kable_paper("hover", full_width = F)
+
+#short for presentation
+
+means_df_select[c(8,2:3)]%>% 
   kbl() %>%
   kable_paper("hover", full_width = F)
 ```
