@@ -440,11 +440,11 @@ Let's run an anova to see if there is a significant difference between mean pric
 ```{r}
 #anova test to compare mean price
 anovaRes_price2 <-  aov(price ~ room_type, data=means_df_rt)
-xkabledply(anovaRes_price2, title = "Price ANOVA")
+xkabledply(anovaRes_price2, title = "Price by Room Type ANOVA")
 
 #anova test to compare mean rating
 anovaRes_rating2 <-  aov(review_scores_rating ~ room_type, data=means_df_rt)
-xkabledply(anovaRes_rating2, title = "Rating ANOVA")
+xkabledply(anovaRes_rating2, title = "Rating by Room Type ANOVA")
 ```
 What we find is that for price, room type is something to consider as there are significant differences between the mean prices. However, rating is not as much of a comparative factor when determining a room type to select on AirBnB as there is no significant differences between the mean.
 
