@@ -70,7 +70,7 @@ data.frame(variable = names(df),
 
 # Descriptive statistics
 
-## Price
+## Histogram and QQ plot for Price
 ```{r, fig.show='hide'}
 Price_No_Outlier = outlierKD2(df, price, rm=TRUE)
 ```
@@ -82,7 +82,7 @@ qqnorm(Price_No_Outlier$price, main="Q-Q plot of Price")
 qqline(Price_No_Outlier$price)
 ```
 
-## Reviews
+## Histogram and QQ plot for Number of Reviews
 
 ```{r, fig.show='hide'}
 Number_of_Reviews_No_Outlier = outlierKD2(df, number_of_reviews, rm=TRUE)
@@ -95,7 +95,7 @@ qqnorm(Number_of_Reviews_No_Outlier$number_of_reviews, main="Q-Q plot of Number 
 qqline(Number_of_Reviews_No_Outlier$number_of_reviews)
 ```
 
-## Amenities
+## Histogram and QQ plot for Amenities
 
 ```{r, fig.show='hide'}
 Number_of_Amenities_No_Outlier = outlierKD2(df, amenities, rm=TRUE)
@@ -108,16 +108,30 @@ qqnorm(Number_of_Amenities_No_Outlier$amenities, main="Q-Q plot of Amenities")
 qqline(Number_of_Amenities_No_Outlier$amenities)
 ```
 
-## Histogram and QQ plot for Review scores
+## Histogram and QQ plot for Review Scores
 
-```{r}
-review_score_noout = outlierKD2(df, review_scores_rating, rm=TRUE, boxplt=FALSE, histogram=TRUE, qqplt=TRUE)
+```{r, fig.show='hide'}
+Number_of_review_scores_rating_No_Outlier = outlierKD2(df, review_scores_rating, rm=TRUE)
 ```
 
-## Histogram and QQ plot for Reviews per month
+```{r}
+par(mfrow = c(1,2))
+hist(Number_of_review_scores_rating_No_Outlier$review_scores_rating, main = 'Histogram of Review Scores', xlim = c(4,6))
+qqnorm(Number_of_review_scores_rating_No_Outlier$review_scores_rating, main="Q-Q plot of Review scores")
+qqline(Number_of_review_scores_rating_No_Outlier$review_scores_rating)
+```
+
+## Histogram and QQ plot for Reviews per Month
+
+```{r, fig.show='hide'}
+Number_of_reviews_per_month_No_Outlier = outlierKD2(df, reviews_per_month, rm=TRUE)
+```
 
 ```{r}
-reviews_pm_noout = outlierKD2(df, reviews_per_month, rm=TRUE, boxplt=FALSE, histogram=TRUE, qqplt=TRUE)
+par(mfrow = c(1,2))
+hist(Number_of_reviews_per_month_No_Outlier$reviews_per_month, main = 'Histogram of Reviews per Month', xlim = c(0,10))
+qqnorm(Number_of_reviews_per_month_No_Outlier$reviews_per_month, main="Q-Q plot of Reviews per Month")
+qqline(Number_of_reviews_per_month_No_Outlier$reviews_per_month)
 ```
 
 # Exploratory Data Analysis
