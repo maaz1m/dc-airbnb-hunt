@@ -108,12 +108,6 @@ qqnorm(Number_of_Amenities_No_Outlier$amenities, main="Q-Q plot of Amenities")
 qqline(Number_of_Amenities_No_Outlier$amenities)
 ```
 
-## Histogram for room type
-
-```{r}
-ggplot(data = df, aes(room_type))+ stat_count(width = 0.5,col="red",fill="#03FDFC",alpha = 1) + labs(title = "Room type vs Frequency", x= "Room Type", y= "Frequency")
-```
-
 ## Histogram and QQ plot for Review scores
 
 ```{r}
