@@ -115,11 +115,21 @@ qqline(Number_of_Amenities_No_Outlier$amenities)
 ```{r}
 ggplot(data = df, aes(room_type))+ stat_count(width = 0.5,col="red",fill="#03FDFC",alpha = 1) + labs(title = "Room type vs Frequency", x= "Room Type", y= "Frequency")
 ```
+<<<<<<< Updated upstream
 ##Histogram and QQ plot for Review scores
 ```{r}
 review_score_noout = outlierKD2(df, review_scores_rating, rm=TRUE, boxplt=FALSE, histogram=TRUE, qqplt=TRUE)
 ```
 #Histogram and QQ plot for Reviews per month
+=======
+
+## Histogram and QQ plot for Review scores
+
+```{r}
+review_score_noout = outlierKD2(df, review_scores_rating, rm=TRUE, boxplt=FALSE, histogram=TRUE, qqplt=TRUE)
+```
+## Histogram and QQ plot for Reviews per month
+>>>>>>> Stashed changes
 ```{r}
 reviews_pm_noout = outlierKD2(df, reviews_per_month, rm=TRUE, boxplt=FALSE, histogram=TRUE, qqplt=TRUE)
 ```
