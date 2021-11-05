@@ -185,7 +185,7 @@ ggplot(df_freq,aes(x=reorder(neighbourhood_short, neighbourhood_short, function(
 
 
 ## Price and room type
-We are not sure what room type our friend is looking for. So, to allow them to understand the options, we will plot average price by room type. As we saw in the summary statistics, there is a large spread on this data. So, we will be viewing these plots zoomed in to the 0 - 95th percentile.  
+We are not sure what room type our friend is looking for. So, to allow them to understand the options, we will plot average price by room type. As we saw in the summary statistics, there is a large spread on this data. So, we will be viewing these plots zoomed in to the 0 - 95th percentile. A descending rank list of mean price across room types is given.
 
 ```{r}
 ggplot(df,aes(x=room_type, y=price))+ geom_boxplot(outlier.shape = NA ) +
@@ -205,10 +205,19 @@ coord_cartesian(ylim = quantile(df$price, c(0.0, .95)))+
         labs( x="Room Type", y="Price")+
         ggtitle("Box Plot of Price Distribution by Room Type")
 ```
+```{r}
+price_room = df %>%
+  group_by(room_type) %>%
+  summarise_at(vars(price), list(price = mean))
+price_room = data.frame(price_room)
+price_room[order(-rank(price_room$price), decreasing = FALSE), ]%>% 
+  kbl() %>%
+  kable_paper("hover", full_width = F)
+```
 
 ## Reviews and room type
 
-Now we will do the same for rating. This time we will zoom from the 1st to 100th percentile. 
+Now we will do the same for rating. This time we will zoom from the 1st to 100th percentile. A descending rank list of mean rating score across room types is given.
 
 ```{r}
 ggplot(df,aes(x=room_type, y=review_scores_rating))+ geom_boxplot(outlier.shape = NA ) +
@@ -229,17 +238,6 @@ coord_cartesian(ylim = quantile(df$review_scores_rating, c(.01, 1)))+
         ggtitle("Box Plot of Rating Distribution by Room Type")
 ```
 
-## Amenities and room type
-```{r}
-price_room = df %>%
-  group_by(room_type) %>%
-  summarise_at(vars(price), list(price = mean))
-price_room = data.frame(price_room)
-price_room[order(-rank(price_room$price), decreasing = FALSE), ]%>% 
-  kbl() %>%
-  kable_paper("hover", full_width = F)
-```
-
 ```{r}
 rating_room = df %>%
   group_by(room_type) %>%
@@ -250,15 +248,6 @@ rating_room[order(-rank(rating_room$review_scores_rating), decreasing = FALSE), 
   kable_paper("hover", full_width = F)
 ```
 
-```{r}
-amenities_room = df %>%
-  group_by(room_type) %>%
-  summarise_at(vars(amenities), list(amenities = mean))
-amenities_room = data.frame(amenities_room)
-amenities_room[order(-rank(amenities_room$amenities), decreasing = FALSE), ]%>% 
-  kbl() %>%
-  kable_paper("hover", full_width = F)
-```
 
 ## Price and neighbourhood
 
@@ -273,7 +262,7 @@ str(df_175)
 
 Our subsetted data set now has `r n_distinct(df_175$neighbourhood)` neighborhoods with `r nrow(df_175)` data points to analyze. 
 
-We can now analyze price across neighborhoods. To better view this graph, we will be zooming in to view the 0th to 95th percentile. 
+We can now analyze price across neighborhoods. To better view this graph, we will be zooming in to view the 0th to 95th percentile. A descending rank list of mean price across the neighborhoods is given.
 
 ```{r}
 ggplot(df_175,aes(x=neighbourhood_short, y=price))+ geom_boxplot(outlier.shape = NA ) +
@@ -293,13 +282,23 @@ coord_cartesian(ylim = quantile(df$price, c(.0, .95)))+
         ggtitle("Box Plot of Price Distribution by Neighborhood")
 ```
 
+```{r}
+price_neighbor = df_175 %>%
+  group_by(neighbourhood) %>%
+  summarise_at(vars(price), list(price = mean))
+price_neighbor = data.frame(price_neighbor)
+price_neighbor[order(-rank(price_neighbor$price), decreasing = FALSE), ]%>% 
+  kbl() %>%
+  kable_paper("hover", full_width = F)
+```
+
 ## Reviews and neighbourhood
 
-Next we will look at rating across neighborhoods. To better view this graph, we will be zooming in to view the 3rd to 100th percentile. 
+Next we will look at rating across neighborhoods. To better view this graph, we will be zooming in to view the 3rd to 100th percentile. A descending rank list of mean price across the neighborhoods is given.
 
 ```{r}
-ggplot(df_175,aes(x=neighbourhood_short, y=price))+ geom_boxplot(outlier.shape = NA ) +
-coord_cartesian(ylim = quantile(df$price, c(.0, .95)))+
+ggplot(df_175,aes(x=neighbourhood_short, y=review_scores_rating))+ geom_boxplot(outlier.shape = NA ) +
+coord_cartesian(ylim = c(3,5))+
   geom_jitter(width=0.15, alpha=.2, aes(colour=neighbourhood_short))+
   theme(axis.text.x = element_text(angle = 90, size=9))+
   theme(axis.text.x = element_text(angle = 90),
@@ -316,17 +315,6 @@ coord_cartesian(ylim = quantile(df$price, c(.0, .95)))+
 
 ```
 
-## Amenities and neighborhood
-```{r}
-price_neighbor = df_175 %>%
-  group_by(neighbourhood) %>%
-  summarise_at(vars(price), list(price = mean))
-price_neighbor = data.frame(price_neighbor)
-price_neighbor[order(-rank(price_neighbor$price), decreasing = FALSE), ]%>% 
-  kbl() %>%
-  kable_paper("hover", full_width = F)
-```
-
 ```{r}
 rating_neighbor = df_175 %>%
   group_by(neighbourhood) %>%
@@ -334,16 +322,6 @@ rating_neighbor = df_175 %>%
 rating_neighbor = data.frame(rating_neighbor)
 #rating_neighbor
 rating_neighbor[order(-rank(rating_neighbor$review_scores_rating), decreasing = FALSE), ]%>% 
-  kbl() %>%
-  kable_paper("hover", full_width = F)
-```
-
-```{r}
-amenities_neighborhood = df_175 %>%
-  group_by(neighbourhood) %>%
-  summarise_at(vars(amenities), list(amenities = mean))
-amenities_neighborhood = data.frame(amenities_neighborhood)
-amenities_neighborhood[order(-rank(amenities_neighborhood$amenities), decreasing = FALSE), ]%>% 
   kbl() %>%
   kable_paper("hover", full_width = F)
 ```
@@ -362,8 +340,13 @@ First, we will run an ANOVA to see if there is any significant difference betwee
 anovaRes_price1 <-  aov(price ~ neighbourhood, data=df_175)
 xkabledply(anovaRes_price1, title = "Price by Neighborhood ANOVA")
 #anova test to compare mean rating
-anovaRes_rating1 <-  aov(review_scores_rating ~  neighbourhood, data=df)
+anovaRes_rating1 <-  aov(review_scores_rating ~  neighbourhood, data=df_175)
 xkabledply(anovaRes_rating1, title = "Rating by Neighborhood ANOVA")
+
+#EXTRA
+#anova test to compare mean amenities
+#anovaRes_amenities1 <-  aov(amenities ~  neighbourhood, data=df_175)
+#xkabledply(anovaRes_amenities1, title = "Amenities by Neighborhood ANOVA")
 ```
 What we find in both of these Anova results is that there is a significant difference between average price and rating by neighborhood. We will use this knowledge to assume there must be a DC neighborhood with the better prices/ratings than others. 
 
@@ -429,19 +412,17 @@ Let's run an anova to see if there is a significant difference between mean pric
 
 ```{r}
 #anova test to compare mean price
-
 anovaRes_price2 <-  aov(price ~ room_type, data=means_df_rt)
 xkabledply(anovaRes_price2, title = "Price by Room Type ANOVA")
 
 #anova test to compare mean rating
 anovaRes_rating2 <-  aov(review_scores_rating ~ room_type, data=means_df_rt)
-
-anovaRes_price2 <-  aov(price ~ room_type, data=df_175)
-xkabledply(anovaRes_price2, title = "Price by Room Type ANOVA")
-#anova test to compare mean rating
-anovaRes_rating2 <-  aov(review_scores_rating ~ room_type, data=df_175)
-
 xkabledply(anovaRes_rating2, title = "Rating by Room Type ANOVA")
+
+#EXTRA
+#anova test to compare mean amenities
+#anovaRes_amenities2 <-  aov(amenities ~ room_type, data=means_df_rt)
+#xkabledply(anovaRes_amenities2, title = "Amenities by Room Type ANOVA")
 ```
 What we find is that for price and rating, room type is something to consider as there are significant differences between the mean prices. 
 
