@@ -8,13 +8,8 @@ output:
     highlight: github
     toc: true
     number_sections: true
-    
 
 ---
-
-# Motivation
-
-For this project, Team Five has been propositioned by a visiting friend to recommend a neighborhood in DC that offers the best Airbnb deals. To provide an informed suggestion, the team will be using listing data from Airbnbs in DC to answer the question “What DC neighborhood offers Airbnb listings with the highest ratings at the lowest price?”. The team will provide an overall neighborhood suggestion for where to book the best Airbnb deal in DC as well as by type (entire home, private room, etc) and budget.
 
 ```{r, echo = FALSE, results = 'hide', message = FALSE}
 library(tidyverse)
@@ -33,6 +28,14 @@ library(wordcloud)
 library(ezids)
 knitr::opts_chunk$set(warning = FALSE, echo=FALSE, results='hide')
 ```
+
+# Motivation
+
+As travel continues to open up across the world, more travelers are exploring locations they are unfamiliar with. Lodging is a crucial, yet complicated decision to make when traveling to a new location. There are many factors to take into consideration, and they all come at a cost. The gig economy has opened up more opportunities for travelers as private homeowners are able to provide a more customized experience at a competitive price compared to major hotel chains. 
+
+Airbnb is a hotel competitor, which provides lodging for visitors in predominantly privately owned residences. According to the statistical data posted by ipropertymanagement, the general price of Airbnb listings in Europe is about 8%-17% cheaper than the hotels, while the percentage is 6% - 17% cheaper in the United States (paragraph 4). Unlike large hotel chains, where the experience is designed to be similar across numerous locations, Airbnbs offer a diverse experience, for better or for worse. Due to this variety, ratings have become an important factor when placing a booking. These aggregated user rating signal to future users the quality of stay over a variety of factors, such as experience, cleanliness, accuracy, value, etc. 
+
+Travelers looking through an Airbnb website or app may have hundreds of options to choose from depending on their preferences and locality. Narrowing it down to just one Airbnb rental could be a painstaking process of research and comparison. Exploring the dataset of all listings in a locality such as DC, can provide a better understanding of the crucial decision-making KPI of listing rating, as well as give insight to travelers about how to best subset or limit their vacation rental search.
 
 # Existing work
 
@@ -141,6 +144,8 @@ qqline(Number_of_reviews_per_month_No_Outlier$reviews_per_month)
 
 
 # SMART Questions
+
+To provide greater insights for travelers looking to book an Airbnb in DC, we will be utilizing the DC Airbnb listing data to identify the neighborhoods within DC that provide the best overall value properties (highest rating at the lowest price). This will be our primary SMART question. Furthermore, we will also analyze additional factors to look for in a listing to ensure a high-quality visit to the district. For example, we would like to discover the influence of room type in the decision of neighborhoods. In addition, we are interested in how listing names posted by the hosts affect their Airbnbs’ values.
 
 # Exploratory Data Analysis
 
@@ -535,5 +540,7 @@ ggplot(corpus_agg, aes(x=avg_rating, y=avg_price)) + geom_text(label=corpus_agg$
 
 
 # Conclusion and Discussion
+
+For the current research, we have conducted an initial study related to price, rating, neighborhoods, and room types. We could introduce other data columns like amenities. Each listing could have a different set of amenities differentiated in quantity and quality. So it would be an interesting approach if we add the amenities into our next step of research. The number of reviews and the total number of ratings would be helpful to distinguish the hosts, learning who are excellent hosts.
 
 # References
