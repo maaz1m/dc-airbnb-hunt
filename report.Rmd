@@ -12,9 +12,9 @@ output:
 
 ---
 
-# Introduction
+# Motivation
 
-For this project, Team Five has been propositioned by a visiting friend to recommend a neighborhood in DC that offers the best Airbnb deals. To provide an informed suggestion, the team will be using listing data from Airbnbs in DC to answer the question “What DC neighborhood offers Airbnb listings with the highest ratings at the lowest price?”. The team will provide an overall neighborhood suggestion for where to book the best Airbnb deal in DC as well as by type (entire home, private room, etc) and budget. . This data will come from `Inside Airbnb` , an open-source data tool providing web scraped Airbnb listing information by city.
+For this project, Team Five has been propositioned by a visiting friend to recommend a neighborhood in DC that offers the best Airbnb deals. To provide an informed suggestion, the team will be using listing data from Airbnbs in DC to answer the question “What DC neighborhood offers Airbnb listings with the highest ratings at the lowest price?”. The team will provide an overall neighborhood suggestion for where to book the best Airbnb deal in DC as well as by type (entire home, private room, etc) and budget.
 
 ```{r, echo = FALSE, results = 'hide', message = FALSE}
 library(tidyverse)
@@ -31,11 +31,14 @@ library(tidytext)
 library(stringr)
 library(wordcloud)
 library(ezids)
-knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(warning = FALSE, echo=FALSE, results='hide')
 ```
 
-# Data Preprocessing
+# Existing work
 
+# Dataset
+
+This data will come from `Inside Airbnb` , an open-source data tool providing web scraped Airbnb listing information by city.
 
 ```{r}
 df <- read.csv('listings_detailed.csv')
@@ -53,7 +56,7 @@ df = na.omit(df)
 ```
 To begin the AirBnB search for our friend, we must prepare our data for analysis. With this dataset we will select the `r ncol(df)` variables that will help us answer this question. We will also make sure all of our variables are in the appropriate form, rename necessary columns and remove na values. With this cleansing our dataset now has `r nrow(df)` airbnb units for analysis. 
 
-# Data Summary
+## Data Summary
 ```{r}
 glimpse(df)
 
@@ -67,6 +70,8 @@ data.frame(variable = names(df),
   kable()
 
 ```
+
+## Limitations of Dataset
 
 # Descriptive statistics
 
@@ -133,6 +138,9 @@ hist(Number_of_reviews_per_month_No_Outlier$reviews_per_month, main = 'Histogram
 qqnorm(Number_of_reviews_per_month_No_Outlier$reviews_per_month, main="Q-Q plot of Reviews per Month")
 qqline(Number_of_reviews_per_month_No_Outlier$reviews_per_month)
 ```
+
+
+# SMART Questions
 
 # Exploratory Data Analysis
 
@@ -327,7 +335,7 @@ rating_neighbor[order(-rank(rating_neighbor$review_scores_rating), decreasing = 
 ```
 
 
-# SMART Questions
+# Results
 
 ## What neighbourhood has the best value?
 
@@ -499,7 +507,9 @@ map2 %>%  addProviderTiles(providers$CartoDB.Positron)
 ```
 
 
-## Do names of listings affect reviews and price?
+## What neighbourhood has the best value by room type?
+
+## Do names of listings have an influence on value?
 
 All listings try to keep catchy and attractive names to get clicks by prospective guests. We want to investigate whether names with certain characteristics are better or worse than others.
 
@@ -523,7 +533,7 @@ corpus_agg <- df_corpus %>%
 ggplot(corpus_agg, aes(x=avg_rating, y=avg_price)) + geom_text(label=corpus_agg$word, aes(size=count, color = word)) + scale_size_continuous(range = c(2, 10)) + guides(color=FALSE)
 ```
 
-* Cozy places are cheaper but worse than spacious ones.
-* Houses are pricier than condos with no difference in ratings. 
-* Parking places are more expensive than those near a metro, with no difference in ratings.
-* Historic places are the best rated.
+
+# Conclusion and Discussion
+
+# References
