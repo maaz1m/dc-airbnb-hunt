@@ -158,7 +158,7 @@ qqline(Number_of_reviews_per_month_No_Outlier$reviews_per_month)
 
 ## Room types
 
-###Overview of Room Types
+##Overview of Room Types
 
 Airbnb offers four types of rooms in the District of Columbia. This includes the entire place, a rental occupied fully by the renter with a private bathroom, bedroom and living space, private room, a rental where the renter has a private bedroom but may share other living spaces, shared room, a rental where the renter will share all living space, including the bedroom, and hotel room., a rental where visitors stay in a hotel room in a hostel or boutique hotel setting. Looking at the pie chart below, you will see that we found in DC the primary type of rental available was the entire place with private room following behind it. We found that a small proportion of listings were hotels or shared rooms (insert proportions in r). Each listing can only be one type of rental, and there can be no rentals with no room type, so we so no overlaps or nulls. 
 
@@ -176,7 +176,7 @@ ggplot(d, aes(y = Freq, x = "", fill = Var1)) + geom_bar(width=3, stat = "identi
         labs(fill = "Room Type")
 ```
 
-### Price and room type
+## Price and Room Type
 
 Price is a key determinant for booking a listing. To understand how a listing may be selected, we tested to see if variation in price was significantly different by room type. 
 
@@ -211,19 +211,18 @@ price_room[order(-rank(price_room$price), decreasing = FALSE), ]%>%
   kable_paper("hover", full_width = F)
 ```
 
-####ANOVA Analysis
 
 ```{r, results = "show", fig.align = 'center'}
 #anova test to compare mean price
 anovaRes_price1 <-  aov(price ~ room_type, data=df_175)
-xkabledply(anovaRes_price1, title = "Price by Neighborhood ANOVA")
+xkabledply(anovaRes_price1, title = "Price by Room Type ANOVA")
 
 ```
 
 To confirm the trends we see in the boxplot, we ran an ANOVA, with the data subset we will be using to answer our SMART question, to test our null hypothesis that there was no significant difference in the means of price across room types. Our result shows a low p-value of `r summary(anovaRes_price1)[[1]][[1,"Pr(>F)"]]`, meaning we can reject the null hypothesis and conclude that there is a statistically significant difference in price across room types. 
 
 
-### Review Score Rating and Room Type
+## Review Score Rating and Room Type
 
 We did the same analysis for review score rating as we did for price across room types. We first created a box plot to visually show the difference between the ratings by room type. We see here that the entire place has a slighter higher spread than the private room which has a higher spread than the shared room and the hotel room. The average review score rating of entire place listings is higher than the other three, yet the difference between entire place and private is much smaller than the difference between private room and hotel room.
 
@@ -255,12 +254,11 @@ rating_room[order(-rank(rating_room$review_scores_rating), decreasing = FALSE), 
   kable_paper("hover", full_width = F)
 ```
 
-####ANOVA Analysis
 
 ```{r, results = "show"}
 #anova test to compare mean rating
 anovaRes_rating1 <-  aov(review_scores_rating ~  room_type, data=df_175)
-xkabledply(anovaRes_rating1, title = "Rating by Neighborhood ANOVA")
+xkabledply(anovaRes_rating1, title = "Rating by Room Type ANOVA")
 
 ```
 
@@ -268,7 +266,7 @@ To further examine the trends we have identified in our boxplot, we again ran an
 
 ## Neighorhood
 
-###Overview of Neighborhood
+##Overview of Neighborhood
 
 DC has 39 separate neighborhoods defined by Airbnb in our original dataset. In the frequency plot below, the total numbers of all Airbnb listings are shown. This shows us that DC Airbnbs are not evenly distributed across the district and there are a handful of neighborhoods with a high frequency of Airbnbs while most have less than 100 listings.
 
@@ -352,7 +350,6 @@ price_neighbor[order(-rank(price_neighbor$price), decreasing = FALSE), ]%>%
 ```
 
 
-####ANOVA Analysis
 ```{r, results = "show"}
 #anova test to compare mean price
 anovaRes_price2 <-  aov(price ~ neighbourhood, data=df_175)
@@ -397,8 +394,6 @@ rating_neighbor[order(-rank(rating_neighbor$review_scores_rating), decreasing = 
   kable_paper("hover", full_width = F)
 ```
 
-
-####ANOVA Analysis
 
 ```{r, results = "show"}
 #anova test to compare mean price
