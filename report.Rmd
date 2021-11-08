@@ -317,7 +317,7 @@ In our subsetted data, we find there are `r n_distinct(df_175$neighbourhood)` DC
 
 Looking across the entire dataset and in our subset of top 10 neighborhoods with the highest frequency of Airbnb listings, we find that the proportion of room type does not vary much across the neighborhoods. All neighborhoods are made up predominantly of entire places with some share of private rooms. In our subset, we do see two neighborhoods with hotels (Dupont Circle, Capitol Hill) and five neighborhoods with shared rooms (Capitol Hill, Columbia Heights, Dupont Circle, Shaw/Logan Circle, Kalorama Heights).
 
-## Price and neighbourhood
+## Price and Neighbourhood
 
 To see if Airbnb listings vary by price, we created a box plot to show the distribution of Airbnb listing prices across our ten neighborhoods. Displayed below, we see these neighborhoods not only look to have varying means but also varying spreads, suggesting that the price of an Airbnb will be different depending on the selected neighborhood. The ranking of average prices of neighborhoods tells us the highest is in areas like Downtown and Chinatown.
 
@@ -513,7 +513,7 @@ means_df_rt_select <- rbind(means_df_rt_eha_select,means_df_rt_pr_select,means_d
 This revealed a list of neighborhoods different from the list we found in the overall comparison. The results are mapped below based on the mean longitude and latitude of the listings in the neighborhood. The color indicates the room type and the size shows the comparative frequency of listings in the neighborhood. What we find is that the large proportion of data being entire places, skewed our overall neighborhood results as our entire place results mimic those results the most, while our additional room types vary. The only room type with no deals selected is the hotel type. This is most likely due to the lack of data to produce neighborhoods that differ from both the mean price and rating. 
 
 
-```{r}
+```{r, results = "show"}
 #id for neighborhoods
 means_df_rt_select$ID <- seq.int(nrow(means_df_rt_select))
 means_df_rt_select[c(9,2:5)]%>% 
@@ -528,7 +528,7 @@ means_df_rt_select[c(9,2:5)]%>%
 ```
 
 
-```{r}
+```{r, results = "show"}
 #color palette
 pal2 <- colorFactor(c("#51c5ed","#C3EB78","#ff616f","#3D348B"), domain = c("Entire home/apt","Shared room","Private room","Hotel room"))
 # create leaflet map 
