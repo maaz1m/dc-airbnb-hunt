@@ -440,7 +440,35 @@ map %>%  addProviderTiles(providers$CartoDB.Positron)
 
 To see if our neighborhoods with the best value change by room type, we added room type into our best value analysis. For this analysis, we calculated our neighborhood means by room type and then plotted each against the average price and review rating score by room type. This is plotted in the scatter plot below where the neighborhood is indicated by color and room type is shown by shape. Each group mean for comparison is marked by a horizontal or vertical line. 
 
+<<<<<<< HEAD
 ```{r, results='markup'}
+=======
+#anova test to compare mean rating
+anovaRes_rating2 <-  aov(review_scores_rating ~ room_type, data=means_df_rt)
+xkabledply(anovaRes_rating2, title = "Rating by Room Type ANOVA")
+
+#EXTRA
+#anova test to compare mean amenities
+#anovaRes_amenities2 <-  aov(amenities ~ room_type, data=means_df_rt)
+#xkabledply(anovaRes_amenities2, title = "Amenities by Room Type ANOVA")
+```
+What we find is that for price and rating, room type is something to consider as there are significant differences between the mean prices. 
+
+We will show our friend an analysis where we look for the best true values by room type where the AirBnBs have a price lower than the mean and rating higher than the mean.
+
+
+
+
+
+
+
+## What neighbourhood has the best value by room type?
+From our analysis above, we know there is a significant difference in price and review rating score across room types. To see if our neighborhoods with the best value change by room type, we added room type into our best value analysis. For this analysis, we calculated our neighborhood means by room type and then plotted each against the average price and review rating score by room type. This is plotted in the scatter plot below where the neighborhood is indicated by color and room type is shown by shape. Each group mean for comparison is marked by a horizontal or vertical line. 
+
+Now we can map by room type suggestions
+
+```{r}
+>>>>>>> main
 means_df_rt_eha <- means_df_rt[which(means_df_rt$room_type=="Entire home/apt"),]
 means_df_rt_pr <- means_df_rt[which(means_df_rt$room_type=="Private room"),]
 means_df_rt_sr <- means_df_rt[which(means_df_rt$room_type=="Shared room"),]
@@ -489,9 +517,13 @@ means_df_rt_select[c(9,2:3)]%>%
   kable_paper("hover", full_width = F)
 ```
 
+<<<<<<< HEAD
 This revealed a list of neighborhoods different from the list we found in the overall comparison. The results are mapped below based on the mean longitude and latitude of the listings in the neighborhood. The color indicates the room type and the size shows the comparative frequency of listings in the neighborhood. What we find is that the large proportion of data being entire places, skewed our overall neighborhood results as our entire place results mimic those results the most, while our additional room types vary. The only room type with no deals selected is the hotel type. This is most likely due to the lack of data to produce neighborhoods that differ from both the mean price and rating. 
 
 ```{r, results='markup'}
+=======
+```{r}
+>>>>>>> main
 #color palette
 pal2 <- colorFactor(c("#51c5ed","#C3EB78","#ff616f","#3D348B"), domain = c("Entire home/apt","Shared room","Private room","Hotel room"))
 # create leaflet map 
@@ -511,9 +543,18 @@ map2 %>%  addProviderTiles(providers$CartoDB.Positron)
 ```
 
 
+<<<<<<< HEAD
 ## Do names of listings have an influence on value?
 
 The listing name is added by the host themselves in order to make the listing as attractive as possible. All listings try to keep catchy and attractive names to get clicks by prospective guests. It usually contains features of the place, such as “near metro” and “spacious”. We want to investigate whether names with certain characteristics are better or worse than others. We believe that these listing names contain information that might not otherwise be present in any of the columns in the dataset.
+=======
+This revealed a list of neighborhoods different from the list we found in the overall comparison. The results are mapped below based on the mean longitude and latitude of the listings in the neighborhood. The color indicates the room type and the size shows the comparative frequency of listings in the neighborhood. What we find is that the large proportion of data being entire places, skewed our overall neighborhood results as our entire place results mimic those results the most, while our additional room types vary. The only room type with no deals selected is the hotel type. This is most likely due to the lack of data to produce neighborhoods that differ from both the mean price and rating. 
+
+
+## Do names of listings have an influence on value?
+
+The listing name is added by the host themselves in order to make the listing as attractive as possible. It usually contains features of the place, such as “near metro” and “spacious”. We believe that these listing names contain information that might not otherwise be present in any of the columns in the dataset.
+>>>>>>> main
 
 ```{r, results = 'markup'}
 data(stop_words)
@@ -525,7 +566,12 @@ wordcloud(words = all_words$word, freq = all_words$count, , min.freq = 50, color
 
 We created a word cloud to identify if there were any terms that were more prevalent than others. The size of the word indicates frequency, and sure enough, some terms are indeed more frequent than others. The wordcloud shows that certain key words such as metro, basement, private, townhouse, metro etc are present in a lot of listings.
 
+<<<<<<< HEAD
 Now we want to investigate whether some terms indicate higher value. Here value is defined as a combination of rating and price. We plot each term on a scatter plot with rating on the X-axis and price on the Y-axis, with size indicating the frequency.
+=======
+We created a word cloud to identify if there were any terms that were more prevalent than others. The size of the word indicates frequency, and sure enough, some terms are indeed more frequent than others. Now we want to investigate whether some terms indicate higher value. Here value is defined as a combination of rating and price. We plot each term on a scatter plot with rating on the X-axis and price on the Y-axis, with size indicating the frequency.
+
+>>>>>>> main
 
 ```{r, results = 'markup'}
 df_corpus <- corpus %>% left_join(df)
@@ -536,7 +582,11 @@ corpus_agg <- df_corpus %>%
 ggplot(corpus_agg, aes(x=avg_rating, y=avg_price)) + geom_text(label=corpus_agg$word, aes(size=count, color = word)) + scale_size_continuous(range = c(2, 10)) + guides(color=FALSE)
 ```
 
+<<<<<<< HEAD
 Some key takeaways from this are that historical places are the highest-rated and are ideal for someone looking for a satisfying stay. Furthermore, places near a metro are rated similarly to places with parking, despite being much cheaper. This would make someone think twice about bringing a car to the city.
+=======
+Some key takeaways from this are that historical places are the highest-rated and are ideal for someone looking for a satisfying stay. Furthermore, places near a metro are rated similarly to places with parking, despite being much cheaper. This would make someone think twice about bringing a car to the city. 
+>>>>>>> main
 
 # Conclusion and Discussion
 
@@ -550,4 +600,10 @@ For the current status, we have conducted an initial study related to price, rat
 
 1. Bustamante, J. (2021, November 4). Airbnb statistics [2021]: User & market growth data. iPropertyManagement.com. Retrieved November 7, 2021, from https://ipropertymanagement.com/research/airbnb-statistics.
 
+<<<<<<< HEAD
 2. Cheng, M., & Jin, X. (2018, May 1). What do airbnb users care about? an analysis of online review comments. International Journal of Hospitality Management. Retrieved November 7, 2021, from https://www.sciencedirect.com/science/article/pii/S0278431917307491?casa_token=RtKGCn1sDZEAAAAA%3ApDdFk5V-qR-b2TLSDQimzIdh8LleualUtg7nQzMMapsoco44oZbA4qZ1J7zAWpbYkjNr1FI-5dg.
+=======
+# References
+Bustamante, J. (2021, November 4). Airbnb statistics [2021]: User & market growth data. iPropertyManagement.com. Retrieved November 7, 2021, from https://ipropertymanagement.com/research/airbnb-statistics. 
+Cheng, M., & Jin, X. (2018, May 1). What do airbnb users care about? an analysis of online review comments. International Journal of Hospitality Management. Retrieved November 7, 2021, from https://www.sciencedirect.com/science/article/pii/S0278431917307491?casa_token=RtKGCn1sDZEAAAAA%3ApDdFk5V-qR-b2TLSDQimzIdh8LleualUtg7nQzMMapsoco44oZbA4qZ1J7zAWpbYkjNr1FI-5dg. 
+>>>>>>> main
