@@ -516,7 +516,7 @@ map2 %>%  addProviderTiles(providers$CartoDB.Positron)
 
 ## Do names of listings have an influence on value?
 
-All listings try to keep catchy and attractive names to get clicks by prospective guests. We want to investigate whether names with certain characteristics are better or worse than others.
+The listing name is added by the host themselves in order to make the listing as attractive as possible. It usually contains features of the place, such as “near metro” and “spacious”. We believe that these listing names contain information that might not otherwise be present in any of the columns in the dataset.
 
 ```{r}
 data(stop_words)
@@ -527,7 +527,8 @@ wordcloud(words = all_words$word, freq = all_words$count, , min.freq = 50, color
 ```
 
 
-The wordcloud shows that certain key words such as metro, basement, private, townhouse, metro etc are present in a lot of listings.
+We created a word cloud to identify if there were any terms that were more prevalent than others. The size of the word indicates frequency, and sure enough, some terms are indeed more frequent than others. Now we want to investigate whether some terms indicate higher value. Here value is defined as a combination of rating and price. We plot each term on a scatter plot with rating on the X-axis and price on the Y-axis, with size indicating the frequency.
+
 
 ```{r}
 df_corpus <- corpus %>% left_join(df)
@@ -538,6 +539,7 @@ corpus_agg <- df_corpus %>%
 ggplot(corpus_agg, aes(x=avg_rating, y=avg_price)) + geom_text(label=corpus_agg$word, aes(size=count, color = word)) + scale_size_continuous(range = c(2, 10)) + guides(color=FALSE)
 ```
 
+Some key takeaways from this are that historical places are the highest-rated and are ideal for someone looking for a satisfying stay. Furthermore, places near a metro are rated similarly to places with parking, despite being much cheaper. This would make someone think twice about bringing a car to the city. 
 
 # Conclusion and Discussion
 
