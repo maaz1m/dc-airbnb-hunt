@@ -587,28 +587,27 @@ corpus_agg <- df_corpus %>%
   filter(count > 150)
 ggplot(corpus_agg, aes(x=avg_rating, y=avg_price)) + geom_text(label=corpus_agg$word, aes(size=count, color = word)) + scale_size_continuous(range = c(2, 10)) + guides(color=FALSE)
 ```
-```{r,results=TRUE}
+```{r, echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
 str(df)
 ```
 # Different models to predict the price
 Linear model
-```{r,results=TRUE}
+```{r echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
 loadPkg("leaps")
 df$host_is_superhost = factor(df$host_is_superhost)
 df$neighbourhood_short= factor(df$neighbourhood_short)
 df_new = subset(df,select = -c(name,neighbourhood,latitude,longitude,host_listings_count,id))
 reg.best10 <- regsubsets(price ~. , data = df_new, nvmax = 10, nbest = 2, method = "exhaustive",really.big = T)
 plot(reg.best10, scale = "adjr2", main = "Adjusted R^2")
-summary(reg.best10)
 ```
-```{r,results = TRUE}
+```{r, echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
 model1 = lm(price ~ neighbourhood_short+room_type+bedrooms+amenities,data = df)
 summary(model1)
 ```
-```{r,results=TRUE}
+```{r, echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
 unique(df_new$neighbourhood_short,incomparables = FALSE)
 ```
-```{r,results=TRUE}
+```{r, echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
 priceee = data.frame(neighbourhood_short= "Downtown, China",room_type ="Entire home/apt",bedrooms="5",amenities=44 )
 predict(model1,priceee, type = "response", se = TRUE)
 ```
