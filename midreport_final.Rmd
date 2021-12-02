@@ -588,6 +588,36 @@ corpus_agg <- df_corpus %>%
 ggplot(corpus_agg, aes(x=avg_rating, y=avg_price)) + geom_text(label=corpus_agg$word, aes(size=count, color = word)) + scale_size_continuous(range = c(2, 10)) + guides(color=FALSE)
 ```
 
+
+
+```{r, echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
+str(df)
+```
+# Different models to predict the price
+##Linear model
+```{r echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
+loadPkg("leaps")
+df$host_is_superhost = factor(df$host_is_superhost)
+df$neighbourhood_short= factor(df$neighbourhood_short)
+df_new = subset(df,select = -c(name,neighbourhood,latitude,longitude,host_listings_count,id))
+reg.best10 <- regsubsets(price ~. , data = df_new, nvmax = 10, nbest = 2, method = "exhaustive",really.big = T)
+plot(reg.best10, scale = "adjr2", main = "Adjusted R^2")
+summary(reg.best10)
+```
+
+```{r, echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
+model1 = lm(price ~ neighbourhood_short+room_type+bedrooms+amenities,data = df)
+summary(model1)
+```
+
+```{r, echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
+unique(df_new$neighbourhood_short,incomparables = FALSE)
+```
+
+```{r, echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
+priceee = data.frame(neighbourhood_short= "Downtown, China",room_type ="Entire home/apt",bedrooms="5",amenities=44 )
+predict(model1,priceee, type = "response", se = TRUE)
+```
 # Conclusion and Discussion
 
 The dataset has a few limitations. There are too many data columns but the number of useful columns is way less than the total number. It has many columns about the rating scores, but it does not have the data column of users’ comments. Most rating scores are clustered between 4.0 and 5.0, so it could be hard to do future differentiations on ratings, but it may be much easier with the complement of users’ text reviews if we can determine the positivity and the negativity of users’ attitudes showing from their comments. 
