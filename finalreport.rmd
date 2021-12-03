@@ -1,0 +1,117 @@
+---
+title: "D.C. Airbnb Hunt"
+author: "Foo Fivers: Adrienne Rogers ; Atharva Haldankar ; Mohammad Maaz ; Ricky Li"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    toc: true
+    number_sections: true
+
+---
+
+```{r, echo = FALSE, results = 'hide', message = FALSE, warning = FALSE}
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(readr)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+library(leaflet)
+library(tidytext)
+library(stringr)
+knitr::opts_chunk$set(warning = FALSE, fig.align = 'center')
+```
+
+# Introduction
+
+For the final project, Team Five owns a few properties in DC that we would like to list on AirBnB. Before creating the listing, we need to know what is the most competitive price to list each of our properties at.
+
+# SMART Question
+
+The question we hope to answer with this project is "Given certain attributes of a rental property, what is a competitive price to list it on AirBnB?"
+
+# Dataset
+
+```{r, echo = FALSE}
+df <- read.csv('listings_detailed.csv')
+```
+
+The raw data is obtained from Inside Airbnb, an open-source data tool providing the web scraped Airbnb listing information by cities. It includes `r nrow(df)` records with `r ncol(df)` data columns in total size. Below are all of the data columns. For example, we have columns for id, price, host name, location, neighborhood, review ratingscore, etc.
+  
+```{r}
+glimpse(df)
+```
+
+```{r}
+
+# get columns we need
+df <- df %>% 
+  select(id, name, neighbourhood_cleansed, latitude, longitude, accommodates, room_type, bedrooms, beds, amenities, price) %>% 
+  mutate(price = as.numeric(parse_number(price)),
+         neighbourhood_cleansed = as.factor(neighbourhood_cleansed),
+         room_type = as.factor(room_type),
+         bedrooms = as.factor(bedrooms)) %>%
+  rename(neighbourhood = neighbourhood_cleansed)
+
+# remove all NAs
+df = na.omit(df)
+```
+  
+We then preprocessed this raw dataset by selecting specific data columns and converting the datatypes of some columns. Eventually, the cleaned dataset has `r ncol(df)` records with `r nrow(df)` columns after column renaming and NA removal.
+
+```{r, echo = FALSE}
+#pretty output for presentation
+data.frame(variable = names(df),
+           classe = sapply(df, typeof),
+           first_values = sapply(df, function(x) paste0(head(x,2),  collapse = ", ")),
+           row.names = NULL) %>% 
+  kable()
+```
+
+The amenities column was not usable as is, so we parse it to create indicator variables for each amenity.
+```{r}
+# remove commas and stuff from amenities
+df$amenities <- str_replace_all(df$amenities, "[\"\\[\\]]", "")
+
+# get all possible amenities
+all_amenities = as.data.frame(table(strsplit(paste(df$amenities, collapse=' '),", "))) %>% rename(amenity=Var1)
+
+# get most frequent amenities
+top_amenities = all_amenities %>% filter(Freq > 300)
+
+# create an indicator column for each amenity
+for (a in top_amenities$amenity){
+  colname <- tolower(str_replace_all(a, " ", "_"))
+  df[colname] <- as.factor(grepl(a, df$amenities))
+}
+
+df %>% select(bed_linens:breakfast) %>% head()  %>% kable()
+```
+
+
+# Exploratory Data Analysis
+
+# Modeling
+
+## Linear Regression
+
+## Regression Tree
+
+## K-nearest Neighbours
+
+## Support Vector Machine
+
+## Comparison
+
+# Example predictions
+
+# Future work
+
+# Conclusion and Discussion
+
+
+# References
+
