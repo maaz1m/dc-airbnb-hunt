@@ -102,26 +102,7 @@ df %>% select(air_conditioning:bed_linens) %>% head()  %>% kable()
 # Modeling
 
 ## Linear Regression
-```{r,results=TRUE}
-loadPkg("leaps")
-df$host_is_superhost = factor(df$host_is_superhost)
-df$neighbourhood_short= factor(df$neighbourhood_short)
-df_new = subset(df,select = -c(name,neighbourhood,latitude,longitude,host_listings_count,id))
-reg.best10 <- regsubsets(price ~. , data = df_new, nvmax = 10, nbest = 2, method = "exhaustive",really.big = T)
-plot(reg.best10, scale = "adjr2", main = "Adjusted R^2")
-summary(reg.best10)
-```
-```{r,results = TRUE}
-model1 = lm(price ~ neighbourhood_short+room_type+bedrooms+amenities,data = df)
-summary(model1)
-```
-```{r,results=TRUE}
-unique(df_new$neighbourhood_short,incomparables = FALSE)
-```
-```{r,results=TRUE}
-priceee = data.frame(neighbourhood_short= "Downtown, China",room_type ="Entire home/apt",bedrooms="5",amenities=44 )
-predict(model1,priceee, type = "response", se = TRUE)
-```
+
 ## Regression Tree
 
 ```{r}
