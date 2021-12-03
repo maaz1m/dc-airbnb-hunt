@@ -23,8 +23,6 @@ library(leaflet)
 library(tidytext)
 library(stringr)
 knitr::opts_chunk$set(warning = FALSE, fig.align = 'center')
-
-library(rpart)
 ```
 
 # Introduction
@@ -51,7 +49,7 @@ glimpse(df)
 
 # get columns we need
 df <- df %>% 
-  select(neighbourhood_cleansed, latitude, longitude, accommodates, room_type, bedrooms, beds, amenities, price) %>% 
+  select(id, name, neighbourhood_cleansed, latitude, longitude, accommodates, room_type, bedrooms, beds, amenities, price) %>% 
   mutate(price = as.numeric(parse_number(price)),
          neighbourhood_cleansed = as.factor(neighbourhood_cleansed),
          room_type = as.factor(room_type),
@@ -76,24 +74,21 @@ data.frame(variable = names(df),
 The amenities column was not usable as is, so we parse it to create indicator variables for each amenity.
 ```{r}
 # remove commas and stuff from amenities
-df$amenities <- tolower(str_replace_all(df$amenities, "[\"\\[\\]]", ""))
+df$amenities <- str_replace_all(df$amenities, "[\"\\[\\]]", "")
 
 # get all possible amenities
-all_amenities = as.data.frame(table(strsplit(paste(df$amenities, collapse=", "),", "))) %>% rename(amenity=Var1)
+all_amenities = as.data.frame(table(strsplit(paste(df$amenities, collapse=' '),", "))) %>% rename(amenity=Var1)
 
 # get most frequent amenities
-top_amenities <- all_amenities %>% filter(Freq > 1000)
+top_amenities = all_amenities %>% filter(Freq > 300)
 
 # create an indicator column for each amenity
 for (a in top_amenities$amenity){
-  colname <- str_replace_all(a, " ", "_")
+  colname <- tolower(str_replace_all(a, " ", "_"))
   df[colname] <- as.factor(grepl(a, df$amenities))
 }
 
-# drop the amenities column
-df <- df %>% select(-amenities)
-
-df %>% select(air_conditioning:bed_linens) %>% head()  %>% kable()
+df %>% select(bed_linens:breakfast) %>% head()  %>% kable()
 ```
 
 
@@ -102,43 +97,8 @@ df %>% select(air_conditioning:bed_linens) %>% head()  %>% kable()
 # Modeling
 
 ## Linear Regression
-```{r,results=TRUE}
-loadPkg("leaps")
-df$host_is_superhost = factor(df$host_is_superhost)
-df$neighbourhood_short= factor(df$neighbourhood_short)
-df_new = subset(df,select = -c(name,neighbourhood,latitude,longitude,host_listings_count,id))
-reg.best10 <- regsubsets(price ~. , data = df_new, nvmax = 10, nbest = 2, method = "exhaustive",really.big = T)
-plot(reg.best10, scale = "adjr2", main = "Adjusted R^2")
-summary(reg.best10)
-```
-```{r,results = TRUE}
-model1 = lm(price ~ neighbourhood_short+room_type+bedrooms+amenities,data = df)
-summary(model1)
-```
-```{r,results=TRUE}
-unique(df_new$neighbourhood_short,incomparables = FALSE)
-```
-```{r,results=TRUE}
-priceee = data.frame(neighbourhood_short= "Downtown, China",room_type ="Entire home/apt",bedrooms="5",amenities=44 )
-predict(model1,priceee, type = "response", se = TRUE)
-```
+
 ## Regression Tree
-
-```{r}
-# fit model
-tree_fit <- rpart(price ~ ., method="anova", data=df)
-printcp(tree_fit)
-
-# calculate mean squared error
-tree_pred <- predict(tree_fit)
-actual <- df$price
-tree_mse <- mean((actual - tree_pred)^2)
-tree_mse
-
-# plot feature importance
-tree_top_features <- sort(tree_fit$variable.importance, decreasing = TRUE)[1:5]
-barplot(tree_top_features, xlab = 'feature', ylab = 'importance')
-```
 
 ## K-nearest Neighbours
 
