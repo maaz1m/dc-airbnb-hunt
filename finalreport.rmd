@@ -23,6 +23,8 @@ library(leaflet)
 library(tidytext)
 library(stringr)
 knitr::opts_chunk$set(warning = FALSE, fig.align = 'center')
+
+library(rpart)
 ```
 
 # Introduction
@@ -49,7 +51,7 @@ glimpse(df)
 
 # get columns we need
 df <- df %>% 
-  select(id, name, neighbourhood_cleansed, latitude, longitude, accommodates, room_type, bedrooms, beds, amenities, price) %>% 
+  select(neighbourhood_cleansed, latitude, longitude, accommodates, room_type, bedrooms, beds, amenities, price) %>% 
   mutate(price = as.numeric(parse_number(price)),
          neighbourhood_cleansed = as.factor(neighbourhood_cleansed),
          room_type = as.factor(room_type),
@@ -74,21 +76,24 @@ data.frame(variable = names(df),
 The amenities column was not usable as is, so we parse it to create indicator variables for each amenity.
 ```{r}
 # remove commas and stuff from amenities
-df$amenities <- str_replace_all(df$amenities, "[\"\\[\\]]", "")
+df$amenities <- tolower(str_replace_all(df$amenities, "[\"\\[\\]]", ""))
 
 # get all possible amenities
-all_amenities = as.data.frame(table(strsplit(paste(df$amenities, collapse=' '),", "))) %>% rename(amenity=Var1)
+all_amenities = as.data.frame(table(strsplit(paste(df$amenities, collapse=", "),", "))) %>% rename(amenity=Var1)
 
 # get most frequent amenities
-top_amenities = all_amenities %>% filter(Freq > 300)
+top_amenities <- all_amenities %>% filter(Freq > 1000)
 
 # create an indicator column for each amenity
 for (a in top_amenities$amenity){
-  colname <- tolower(str_replace_all(a, " ", "_"))
+  colname <- str_replace_all(a, " ", "_")
   df[colname] <- as.factor(grepl(a, df$amenities))
 }
 
-df %>% select(bed_linens:breakfast) %>% head()  %>% kable()
+# drop the amenities column
+df <- df %>% select(-amenities)
+
+df %>% select(air_conditioning:bed_linens) %>% head()  %>% kable()
 ```
 
 
@@ -99,6 +104,22 @@ df %>% select(bed_linens:breakfast) %>% head()  %>% kable()
 ## Linear Regression
 
 ## Regression Tree
+
+```{r}
+# fit model
+tree_fit <- rpart(price ~ ., method="anova", data=df)
+printcp(tree_fit)
+
+# calculate mean squared error
+tree_pred <- predict(tree_fit)
+actual <- df$price
+tree_mse <- mean((actual - tree_pred)^2)
+tree_mse
+
+# plot feature importance
+tree_top_features <- sort(tree_fit$variable.importance, decreasing = TRUE)[1:5]
+barplot(tree_top_features, xlab = 'feature', ylab = 'importance')
+```
 
 ## K-nearest Neighbours
 
