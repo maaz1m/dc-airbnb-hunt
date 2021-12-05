@@ -115,6 +115,32 @@ colnames(test_units)[76] <- "room-darkening_shades"
 str(df)
 ```
 
+```{r}
+lr <- lm(price ~ ., data = df)
+summary(lr)
+
+# metrics
+lr_pred <- predict(lr)
+actual <- df$price
+lr_mse <- mean((actual - lr_pred)^2)
+lr_rmse <- sqrt(mean((actual - lr_pred)^2))
+lr_mae <- mean(abs(actual - lr_pred))
+cat('RMSE:', lr_rmse)
+cat('MSE:', lr_mse)
+cat('MAE:', lr_mae)
+
+# feature importance
+lr_all_features <- summary(lr)$coefficients %>% as.data.frame()
+lr_top_features <- lr_all_features %>%
+  mutate(feature = rownames(lr_all_features)) %>%
+  filter(`Pr(>|t|)` < 0.05 & feature != '(Intercept)') %>%
+  arrange(abs(Estimate)) %>%
+  select(Estimate, feature) %>%
+  tail(5)
+
+ggplot(lr_top_features, aes(x=feature, y = Estimate)) + geom_bar(stat="identity") + coord_flip()
+```
+
 ## Regression Tree
 
 ```{r}
@@ -122,11 +148,15 @@ str(df)
 tree_fit <- rpart(price ~ ., method="anova", data=df)
 printcp(tree_fit)
 
-# calculate mean squared error
+# metrics
 tree_pred <- predict(tree_fit)
 actual <- df$price
 tree_mse <- mean((actual - tree_pred)^2)
-tree_mse
+tree_rmse <- sqrt(mean((actual - tree_pred)^2))
+tree_mae <- mean(abs(actual - tree_pred))
+cat('RMSE:', tree_rmse)
+cat('MSE:', tree_mse)
+cat('MAE:', tree_mae)
 
 # plot feature importance
 tree_top_features <- sort(tree_fit$variable.importance, decreasing = TRUE)[1:5]
