@@ -226,7 +226,7 @@ knnPredict2
 
 
 ## Random Forest
-```{r}
+```{r echo=FALSE}
 # encode the variables
 library(mltools)
 library(data.table)
@@ -247,7 +247,7 @@ df_pcr = df_encoded
 ```
 
 
-```{r results = 'markup'}
+```{r}
 #split train test
 data = sort(sample(nrow(df_pcr), nrow(df_pcr)*0.7))
 train_data = df_pcr[data,]
@@ -302,7 +302,7 @@ output = data.frame(pred_total, df_pcr$price)
 names(output) <- c('Predictions', 'Actuals')
 
 str(output)
-head(output)
+output
 ```
 
 ```{r}
@@ -312,10 +312,13 @@ rsq = 1 - var(res_total) / var(df_pcr$price)
 
 ma = mae(df_pcr$price , pred_total)
 
+print('Root Mean Squared Error:')
 rm
 
+print('R-Squared:')
 rsq
 
+print('Mean Absolute Error:')
 ma
 ```
 The MSE of Random Forest is ```r rm```, R-Sqaured is ```r rsq```, MAE is ```r ma```
