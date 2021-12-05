@@ -111,7 +111,35 @@ colnames(test_units)[76] <- "room-darkening_shades"
 
 # Modeling
 
-## Linear Regression
+```{r echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
+str(df)
+```
+
+```{r}
+lr <- lm(price ~ ., data = df)
+summary(lr)
+
+# metrics
+lr_pred <- predict(lr)
+actual <- df$price
+lr_mse <- mean((actual - lr_pred)^2)
+lr_rmse <- sqrt(mean((actual - lr_pred)^2))
+lr_mae <- mean(abs(actual - lr_pred))
+cat('RMSE:', lr_rmse)
+cat('MSE:', lr_mse)
+cat('MAE:', lr_mae)
+
+# feature importance
+lr_all_features <- summary(lr)$coefficients %>% as.data.frame()
+lr_top_features <- lr_all_features %>%
+  mutate(feature = rownames(lr_all_features)) %>%
+  filter(`Pr(>|t|)` < 0.05 & feature != '(Intercept)') %>%
+  arrange(abs(Estimate)) %>%
+  select(Estimate, feature) %>%
+  tail(5)
+
+ggplot(lr_top_features, aes(x=feature, y = Estimate)) + geom_bar(stat="identity") + coord_flip()
+```
 
 ## Regression Tree
 
@@ -120,11 +148,15 @@ colnames(test_units)[76] <- "room-darkening_shades"
 tree_fit <- rpart(price ~ ., method="anova", data=df)
 printcp(tree_fit)
 
-# calculate mean squared error
+# metrics
 tree_pred <- predict(tree_fit)
 actual <- df$price
 tree_mse <- mean((actual - tree_pred)^2)
-tree_mse
+tree_rmse <- sqrt(mean((actual - tree_pred)^2))
+tree_mae <- mean(abs(actual - tree_pred))
+cat('RMSE:', tree_rmse)
+cat('MSE:', tree_mse)
+cat('MAE:', tree_mae)
 
 # plot feature importance
 tree_top_features <- sort(tree_fit$variable.importance, decreasing = TRUE)[1:5]
@@ -323,6 +355,50 @@ ma
 ```
 The MSE of Random Forest is ```r rm```, R-Sqaured is ```r rsq```, MAE is ```r ma```
 
+## Linear Regression
+
+```{r echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
+df <- read.csv('listings_detailed.csv')
+df <- df %>% 
+  dplyr::select(id, name, host_is_superhost, host_listings_count, neighbourhood_cleansed, latitude, longitude, room_type, bedrooms, beds, amenities, price, availability_60, number_of_reviews, review_scores_rating,  review_scores_accuracy, review_scores_cleanliness,
+            review_scores_checkin, review_scores_communication, review_scores_location, review_scores_value, reviews_per_month) %>% 
+  dplyr::mutate(price = as.numeric(parse_number(price)),
+         neighbourhood_cleansed = as.factor(neighbourhood_cleansed),
+         amenities = lengths(strsplit((str_sub(df$amenities, 2, -2)), ",")),
+         room_type = as.factor(room_type),
+         bedrooms = as.factor(bedrooms)) %>%
+  dplyr::rename(neighbourhood = neighbourhood_cleansed)
+df = na.omit(df)
+
+
+#create column for neighborhood name in visualizations
+df$neighbourhood_short <- str_sub(df$neighbourhood,1,15)
+#add in column for frequency of listings
+df_freq <- merge(df, data.frame(table(neighbourhood = df$neighbourhood)), by = c("neighbourhood"))
+
+#subset data where frequency is greater than 175
+df_175 <-  df_freq[ which(df_freq$Freq>175), ]
+```
+
+```{r echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
+library("leaps")
+
+df$host_is_superhost = factor(df$host_is_superhost)
+df$neighbourhood_short= factor(df$neighbourhood_short)
+df_new = subset(df,select = -c(name,neighbourhood,latitude,longitude,host_listings_count,id))
+reg.best10 <- regsubsets(price ~. , data = df_new, nvmax = 10, nbest = 2, method = "exhaustive",really.big = T)
+plot(reg.best10, scale = "adjr2", main = "Adjusted R^2")
+summary(reg.best10)
+```
+
+```{r, echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
+unique(df_new$neighbourhood_short,incomparables = FALSE)
+```
+
+```{r, echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
+priceee = data.frame(neighbourhood_short= "Downtown, China",room_type ="Entire home/apt",bedrooms="5",amenities=44 )
+predict(model1,priceee, type = "response", se = TRUE)
+```
 
 ## Comparison
 
