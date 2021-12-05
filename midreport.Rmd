@@ -40,11 +40,19 @@ By providing a wide selection of listings, Airbnb has been able to create a mark
 Travelers looking through an Airbnb website or app may have hundreds of options to choose from depending on their preferences and locality. The District of Columbia (DC), for example, offers some 7,800 Airbnb listings to travelers to choose from at any time. In markets like this, narrowing it down to just one Airbnb rental could be a painstaking process of research and comparison. Exploring the dataset of all listings in a locality such as DC, can provide a better understanding of the crucial decision-making KPI of listing rating, as well as give insight to travelers about how to best subset or limit their vacation rental search.
 
 # SMART Questions
+<<<<<<< HEAD:report.Rmd
 
 To provide greater insights for travelers looking to book an Airbnb in DC, we will be utilizing the DC Airbnb listing data to identify the neighborhoods within DC that provide the best overall value properties (highest rating at the lowest price). This will be our primary SMART question. Furthermore, we will also analyze additional factors to look for in a listing to ensure a high-quality visit to the district. For example, we would like to discover the influence of room type in the decision of neighborhoods. In addition, we are interested in how listing names posted by the hosts affect their Airbnbs’ values.
 
 # Dataset
 
+=======
+
+To provide greater insights for travelers looking to book an Airbnb in DC, we will be utilizing the DC Airbnb listing data to identify the neighborhoods within DC that provide the best overall value properties (highest rating at the lowest price). This will be our primary SMART question. Furthermore, we will also analyze additional factors to look for in a listing to ensure a high-quality visit to the district. For example, we would like to discover the influence of room type in the decision of neighborhoods. In addition, we are interested in how listing names posted by the hosts affect their Airbnbs’ values.
+
+# Dataset
+
+>>>>>>> main:midreport.Rmd
 ```{r, echo = FALSE}
 df <- read.csv('listings_detailed.csv')
 ```
@@ -271,6 +279,7 @@ anovaRes_rating1 <-  aov(review_scores_rating ~  room_type, data=df_175)
 xkabledply(anovaRes_rating1, title = "Rating by Room Type ANOVA")
 
 ```
+<<<<<<< HEAD:report.Rmd
 
 We again ran an ANOVA with the data subset we will be using to answer our SMART questions. We tested our null hypothesis that there was no significant difference in the means of price across room types. Our result shows am low p-value of `r summary(anovaRes_rating1)[[1]][[1,"Pr(>F)"]]`, once again allowing us to reject the null hypothesis and conclude that there is a statistically significant difference in review score rating across room types.
 
@@ -278,6 +287,15 @@ We again ran an ANOVA with the data subset we will be using to answer our SMART 
 
 DC has 39 separate neighborhoods defined by Airbnb in our original dataset. In the frequency plot below, the total numbers of all Airbnb listings are shown. This shows us that DC Airbnbs are not evenly distributed across the district and there are a handful of neighborhoods with a high frequency of Airbnbs while most have less than 100 listings.
 
+=======
+
+We again ran an ANOVA with the data subset we will be using to answer our SMART questions. We tested our null hypothesis that there was no significant difference in the means of price across room types. Our result shows am low p-value of `r summary(anovaRes_rating1)[[1]][[1,"Pr(>F)"]]`, once again allowing us to reject the null hypothesis and conclude that there is a statistically significant difference in review score rating across room types.
+
+## Overview of Neighborhood
+
+DC has 39 separate neighborhoods defined by Airbnb in our original dataset. In the frequency plot below, the total numbers of all Airbnb listings are shown. This shows us that DC Airbnbs are not evenly distributed across the district and there are a handful of neighborhoods with a high frequency of Airbnbs while most have less than 100 listings.
+
+>>>>>>> main:midreport.Rmd
 ```{r, results='markup'}
 #create column for neighborhood name in visualizations
 df$neighbourhood_short <- str_sub(df$neighbourhood,1,15)
@@ -313,6 +331,7 @@ means_df <- df_175 %>%
 means_df_rt <- df_175 %>%
   group_by(neighbourhood_short,neighbourhood,room_type) %>%
   summarise_at(vars(c(price,review_scores_rating, Freq, latitude,longitude)), funs(mean(., na.rm=TRUE)))
+<<<<<<< HEAD:report.Rmd
 ```
 
 To look at only the neighborhoods with a large amount of Airbnb listings to compare, we used the descending rank of counts of each neighborhood’s Airbnb listings and pulled the top neighborhoods where each neighborhood’s listing frequency is greater than 175.
@@ -342,6 +361,37 @@ Looking across the entire dataset and in our subset of top 10 neighborhoods with
 
 ## Price and Neighbourhood
 
+=======
+```
+
+To look at only the neighborhoods with a large amount of Airbnb listings to compare, we used the descending rank of counts of each neighborhood’s Airbnb listings and pulled the top neighborhoods where each neighborhood’s listing frequency is greater than 175.
+
+```{r}
+
+#create barplot of airbnb frequency by DC neighborhoods
+ggplot(df_175,aes(x=reorder(neighbourhood_short, neighbourhood_short, function(x)-length(x))))+geom_bar(aes(fill = room_type), alpha=.9)+ theme(axis.text.x = element_text(angle = 90),
+        axis.title.x = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        legend.title=element_text(size=9),
+        plot.title = element_text(color="black", face="bold", size=16, hjust=0),
+        panel.grid.major = element_line(colour = "grey90", size = 0.2),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = 'white'),legend.position="top")+
+        scale_fill_manual(values=group.colors)+
+        labs(fill = "Room Type", x="Neighborhood", y="# of AirBnBs Listed")+
+        ggtitle("Frequency of AirBnBs by Neighborhood and Room Type") 
+        
+        n_distinct(df_175$neighbourhood)
+
+```
+
+In our subsetted data, we find there are `r n_distinct(df_175$neighbourhood)` DC neighborhoods with a listing frequency of greater than 175 units. 
+
+Looking across the entire dataset and in our subset of top 10 neighborhoods with the highest frequency of Airbnb listings, we find that the proportion of room type does not vary much across the neighborhoods. All neighborhoods are made up predominantly of entire places with some share of private rooms. In our subset, we do see two neighborhoods with hotels (Dupont Circle, Capitol Hill) and five neighborhoods with shared rooms (Capitol Hill, Columbia Heights, Dupont Circle, Shaw/Logan Circle, Kalorama Heights).
+
+## Price and Neighbourhood
+
+>>>>>>> main:midreport.Rmd
 To see if Airbnb listings vary by price, we created a box plot to show the distribution of Airbnb listing prices across our ten neighborhoods. Displayed below, we see these neighborhoods not only look to have varying means but also varying spreads, suggesting that the price of an Airbnb will be different depending on the selected neighborhood. The ranking of average prices of neighborhoods tells us the highest is in areas like Downtown and Chinatown.
 
 ```{r}
@@ -422,6 +472,7 @@ anovaRes_rating2 <-  aov(review_scores_rating ~ neighbourhood, data=df_175)
 xkabledply(anovaRes_rating2, title = "Rating by Neighborhood ANOVA")
 
 ```
+<<<<<<< HEAD:report.Rmd
 
 And we ran another ANOVA, with the data subset, to test our null hypothesis that there was no significant difference in the means of review score rating across neighborhoods. Our result shows a low p-value of `r summary(anovaRes_rating2)[[1]][[1,"Pr(>F)"]]`, meaning we can reject the null hypothesis and conclude that there is a statistically significant difference in price across neighborhoods. This will give us the confidence to use each neighborhood's mean review score rating as a meaningful variable when ranking DC neighborhoods.  
 
@@ -431,6 +482,17 @@ For this question, we will define “value” as a rental unit where the price i
 
 ```{r, results = "show"}
 
+=======
+
+And we ran another ANOVA, with the data subset, to test our null hypothesis that there was no significant difference in the means of review score rating across neighborhoods. Our result shows a low p-value of `r summary(anovaRes_rating2)[[1]][[1,"Pr(>F)"]]`, meaning we can reject the null hypothesis and conclude that there is a statistically significant difference in price across neighborhoods. This will give us the confidence to use each neighborhood's mean review score rating as a meaningful variable when ranking DC neighborhoods.  
+
+## What DC Neighborhoods Have Best Overall Value?
+
+For this question, we will define “value” as a rental unit where the price is below the average and the review rating score is above the average. We know from our data analysis that there is a significant difference in mean price and mean review rating score across neighborhoods, so we will use this to make our comparison. We graphed mean neighborhood price versus mean neighborhood review rating score in the scatterplot below. We used the overall mean price and mean review rating score for our subset to provide our cutoff for value, this is shown below in red. 
+
+```{r, results = "show"}
+
+>>>>>>> main:midreport.Rmd
 #create mean columns in dataframe
 means_df <- df_175 %>%
   group_by(neighbourhood_short,neighbourhood) %>%
@@ -613,6 +675,9 @@ predict(model1,priceee, type = "response", se = TRUE)
 ```
 # Conclusion and Discussion
 
+<<<<<<< HEAD:report.Rmd
+# Conclusion and Discussion
+
 The dataset has a few limitations. There are too many data columns but the number of useful columns is way less than the total number. It has many columns about the rating scores, but it does not have the data column of users’ comments. Most rating scores are clustered between 4.0 and 5.0, so it could be hard to do future differentiations on ratings, but it may be much easier with the complement of users’ text reviews if we can determine the positivity and the negativity of users’ attitudes showing from their comments. 
 
 During the Exploratory Data Analysis, we have obtained a few interesting findings by investigating the best neighborhoods by multiple factors, which help us answer our current research questions. We think there is no need to change our questions because price and review rating scores do play important roles in deciding an Airbnb’s value differently, with the additional consideration of room types. 
@@ -621,6 +686,16 @@ Our definition of neighborhoods with the best value (price under average while r
 
 We also implemented the room type after the basic analysis on neighborhoods. For entire place, we consider areas around Columnbia Heights, Dupont circle, Edgewood Heights, and Kalorama Heights as the best picks. If the traveler prefers private room, then the neighborhoods of Edgewood, Howard University, and Union Station have the best value. Otherwise, neighborhoods with best shared room listings are located nearby Capitol Hill, Columnbia Heights, Downtown, Shaw, and Union Station. We can see multiple neighborhoods overlap on the levels of room types, which is an interesting finding. This can be a potential topic for next-step research.
 
+=======
+The dataset has a few limitations. There are too many data columns but the number of useful columns is way less than the total number. It has many columns about the rating scores, but it does not have the data column of users’ comments. Most rating scores are clustered between 4.0 and 5.0, so it could be hard to do future differentiations on ratings, but it may be much easier with the complement of users’ text reviews if we can determine the positivity and the negativity of users’ attitudes showing from their comments. 
+
+During the Exploratory Data Analysis, we have obtained a few interesting findings by investigating the best neighborhoods by multiple factors, which help us answer our current research questions. We think there is no need to change our questions because price and review rating scores do play important roles in deciding an Airbnb’s value differently, with the additional consideration of room types. 
+
+Our definition of neighborhoods with the best value (price under average while rating score above average) has led us to see three neighborhoods that satisfy our expectation: The areas around Columbia Heights, Edgewood, and Kalorama Heights.
+
+We also implemented the room type after the basic analysis on neighborhoods. For entire place, we consider areas around Columnbia Heights, Dupont circle, Edgewood Heights, and Kalorama Heights as the best picks. If the traveler prefers private room, then the neighborhoods of Edgewood, Howard University, and Union Station have the best value. Otherwise, neighborhoods with best shared room listings are located nearby Capitol Hill, Columnbia Heights, Downtown, Shaw, and Union Station. We can see multiple neighborhoods overlap on the levels of room types, which is an interesting finding. This can be a potential topic for next-step research.
+
+>>>>>>> main:midreport.Rmd
 The investigation of names of listings brings us some more useful insights. We see some high-frequency words like private, metro, bedroom, parking, etc. These suggest that travellers may care about how they can commute and what living coniditions they can get. Then bringing this into our definition of best value, livings around historic places have the best rating while average price is around 200 dollars. The spacious livings have a moderate average rating within the plot, this is quite surprising because it means bigger living may not necessarily increase the rating score. However, the listings related to metro have the similar rating score compared to those related to parking. It may indicate driving in DC is not worse than taking a ride of metro.
 
 We can see there are many potential topics that can help us develop our research. We could introduce other data columns like amenities for the next steps. Each listing may provide different amenities, and we have turned the amenities column’s values of amenity list into an integer count of each list. Studying how amenities affect the rating and the price could be a potential question. Each listing could have a different set of amenities differentiated in quantity and quality. The number of reviews and the total number of ratings would be helpful to distinguish the hosts, learning who are excellent hosts.

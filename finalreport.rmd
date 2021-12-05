@@ -223,7 +223,103 @@ knnPredict2
 
 ```
 
-## Support Vector Machine
+
+
+## Random Forest
+```{r}
+# encode the variables
+library(mltools)
+library(data.table)
+library(randomForest)
+library(Metrics)
+
+df.prep = as.data.table(df)
+df_encoded = one_hot(df.prep)
+```
+
+```{r}
+# drop unnecessary columns that cant be proceeded not encoded correctly
+#df_pcr = subset(df_encoded, select = -c(id, name, amenities))
+#df_pcr[,165]
+#df_pcr[,80]
+#df_pcr = df_pcr[,-c(80,165)]
+df_pcr = df_encoded
+```
+
+
+```{r results = 'markup'}
+#split train test
+data = sort(sample(nrow(df_pcr), nrow(df_pcr)*0.7))
+train_data = df_pcr[data,]
+test_data = df_pcr[-data,]
+```
+
+```{r}
+#encode
+names(df_pcr) <- gsub(" ", "_", names(df_pcr))
+names(df_pcr) <- gsub(",", "", names(df_pcr))
+names(df_pcr) <- gsub("-", ".", names(df_pcr))
+names(df_pcr) <- gsub("/", ".", names(df_pcr))
+
+
+names(train_data) <- gsub(" ", "_", names(train_data))
+names(train_data) <- gsub(",", "", names(train_data))
+
+names(test_data) <- gsub(" ", "_", names(test_data))
+names(test_data) <- gsub(",", "", names(test_data))
+
+names(train_data) <- gsub("-", ".", names(train_data))
+names(test_data) <- gsub("-", ".", names(test_data))
+
+names(train_data) <- gsub("/", ".", names(train_data))
+names(test_data) <- gsub("/", ".", names(test_data))
+```
+
+
+
+```{r results = 'markup'}
+rf.model2 = randomForest(price ~ ., data=train_data, type = 'regression', ntree = 2000, mtry = 10, importance = TRUE, na.action = na.omit)
+```
+
+```{r results = 'markup'}
+print(rf.model2)
+```
+
+```{r results = 'markup'}
+plot(rf.model2)
+```
+
+
+
+```{r}
+#install.packages('Metrics')
+pred_total = predict(rf.model2, df_pcr)
+
+res_total = df_pcr$price - pred_total
+
+output = data.frame(pred_total, df_pcr$price)
+
+names(output) <- c('Predictions', 'Actuals')
+
+str(output)
+head(output)
+```
+
+```{r}
+rm = rmse(df_pcr$price , pred_total)
+
+rsq = 1 - var(res_total) / var(df_pcr$price)
+
+ma = mae(df_pcr$price , pred_total)
+
+rm
+
+rsq
+
+ma
+```
+The MSE of Random Forest is ```r rm```, R-Sqaured is ```r rsq```, MAE is ```r ma```
+
 
 ## Comparison
 
@@ -235,4 +331,3 @@ knnPredict2
 
 
 # References
-
