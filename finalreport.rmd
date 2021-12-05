@@ -104,9 +104,8 @@ test_units <- read.csv("team5unit.csv")
 test_units$bedrooms <- as.factor(test_units$bedrooms)
 test_units$beds <- as.integer(test_units$beds)
 test_units <- test_units %>% mutate_if(is.logical,as.factor)
-colnames(test_units)[76] <- "room-darkening_shades"
+colnames(test_units)[58] <- "room-darkening_shades"
 ```
-
 # Exploratory Data Analysis
 
 # Modeling
@@ -164,26 +163,25 @@ barplot(tree_top_features, xlab = 'feature', ylab = 'importance')
 ```
 
 
+
 ## K-nearest Neighbours
 ```{r}
 #prepare data for KNN
 #union in values for team units
 
-str(df)
-#remove non-necessary (non-numeric) columns
-df_knn1<- df[,-c(2,4,5,10,23,62:65,68)]
-test_units_knn <- test_units[,-c(2,4,5,10,23,62:65,68)]
-df_comb <-union(df_knn1,test_units_knn)
+
+#update data set to all numeric
+df_knn1<- df
+test_units_knn <- test_units
+df_comb <-union_all(df_knn1,test_units_knn)
 df_comb$neighbourhood <- as.factor(df_comb$neighbourhood)
 df_comb$room_type <- as.factor(df_comb$room_type)
 df_knn <- df_comb %>% mutate_if(is.factor,as.numeric)
 df_knn$accommodates <- as.numeric(df_knn$accommodates)
 df_knn$beds <- as.numeric(df_knn$beds)
-df_knn[,8:79] <- df_knn[,8:79]-1
+df_knn[,9:70] <- df_knn[,9:70]-1
 df_knn <- na.omit(df_knn)
 
-#remove id
-df_knn <- df_knn[,-1]
 #separate team units for future use
 df_knn_units <- df_knn[6903:6905,]
 df_knn <- df_knn[-c(6903:6905),]
@@ -191,12 +189,25 @@ df_knn <- df_knn[-c(6903:6905),]
 #dataset is now all numeric
 str(df_knn_units)
 str(df_knn)
+
+#split data
+set.seed(5)
+indexes <-  createDataPartition(df_knn$price, p = .80, list = F)
+train  <-  df_knn[indexes, ]
+test <-  df_knn[-indexes, ]
+
+
 ```
 
 ```{r}
-#pca to determine threshold for preprocessing
+#pca to determine threshold for variables for knn
 
-pr.out <- prcomp(df_knn, scale =TRUE) 
+# dataset
+pca_train = train %>% select( -price )
+pca_test = test %>% select( -price )
+pca_test_units <- df_knn_units %>% select( -price )
+
+pr.out <- prcomp(pca_train, scale =TRUE) 
 summary(pr.out)
 
 biplot(pr.out, scale = 0)
@@ -210,48 +221,106 @@ plot(cumsum(pve), xlab="Principal Component (standardized)", ylab ="Cumulative P
 ```
 
 ```{r}
-#Run KNN with scale, pca and center preprocessing (threshold is .8 for pca)
+
+#without PCA Preprocessing
+
+ctrl0 <- trainControl(method = "repeatedcv", number = 5, repeats=3)
+
+knnFit0 <- train(price ~ .,
+                data = train, 
+                method     = "knn",
+                tuneGrid   = expand.grid(k = 1:30),
+                trControl  = ctrl0, 
+                preProcess = c('scale','center'),
+                metric     = "RMSE")
+
+knnFit0
+
+#with PCA
+
+# Creating a new dataset
+train_pca <-  data.frame( price = train$price, pr.out$x )
+test_pca <- as.data.frame( predict( pr.out, newdata = pca_test ) )
+test_pca_units <-  as.data.frame(predict(pr.out, newdata=pca_test_units))
+
+new_train = train_pca[, 1:31]
+new_test =  test_pca[, 1:30]
+unit_pred =  test_pca_units[, 1:30]
 
 
-ctrl <- trainControl(method = "repeatedcv", number = 5, repeats=3, preProcOptions = list(thresh = 0.80))
+#run new knn
+
+ctrl <- trainControl(method = "repeatedcv", number = 5, repeats=3)
 
 knnFit <- train(price ~ .,
-                data = train, 
+                data = new_train, 
                 method     = "knn",
                 tuneGrid   = expand.grid(k = 1:10),
                 trControl  = ctrl, 
-                preProcess = c('scale','pca','center'),
+                preProcess = c('scale','center'),
                 metric     = "RMSE")
 
 knnFit
 ```
 
 ```{r}
-#test model accuracy
-knnPredict <- predict(knnFit,newdata = test[,-6])
 
-mse = mean((test[,6] - knnPredict)^2)
-mae = caret::MAE(test[,6], knnPredict)
-rmse = caret::RMSE(test[,6], knnPredict)
+#test model accuracy without pca
+knnPredict0 <- predict(knnFit0,newdata = test[,-8])
+
+
+mse0 = mean((test$price - knnPredict0)^2)
+mae0 = caret::MAE(test$price, knnPredict0)
+rmse0 = caret::RMSE(test$price, knnPredict0)
+
+cat("MSE: ", mse0, "MAE: ", mae0, " RMSE: ", rmse0)
+
+#test model accuracy with pca
+knnPredict <- predict(knnFit,newdata = new_test)
+
+mse = mean((test$price - knnPredict)^2)
+mae = caret::MAE(test$price, knnPredict)
+rmse = caret::RMSE(test$price, knnPredict)
 
 cat("MSE: ", mse, "MAE: ", mae, " RMSE: ", rmse)
 ```
 
 ```{r}
-#plot comparison
-x = 1:length(test[,6])
-plot(x, test[,6], col = "firebrick1", type = "l", lwd=2,
+
+#plot comparison without PCA
+
+
+x <- 1:length(test$price)
+plot(x, test$price, col = "firebrick1", type = "l", lwd=2,
+     main = "DC AirBnB test data prediction")
+lines(x, knnPredict0, col = "dodgerblue", lwd=2)
+legend("topright",  legend = c("original-price", "predicted-price"), 
+       fill = c("firebrick1", "dodgerblue"), col = 2:3,  adj = c(0, 0.6))
+
+
+#plot comparison with PCA
+new_test_g <- cbind(test[,8], new_test)
+colnames(new_test_g)[1] <- "price"
+
+x <- 1:length(new_test_g$price)
+plot(x, new_test_g$price, col = "firebrick1", type = "l", lwd=2,
      main = "DC AirBnB test data prediction")
 lines(x, knnPredict, col = "dodgerblue", lwd=2)
 legend("topright",  legend = c("original-price", "predicted-price"), 
-       fill = c("red", "blue"), col = 2:3,  adj = c(0, 0.6))
+       fill = c("firebrick1", "dodgerblue"), col = 2:3,  adj = c(0, 0.6))
+
 ```
 ```{r}
-#predict our unit prices
+#predict our unit prices without PCA
 
-knnPredict2 <- predict(knnFit,newdata = df_knn_units[,-6])
-
+knnPredict2 <- predict(knnFit0,newdata = df_knn_units[,-8])
 knnPredict2
+
+#predict our unit prices with PCA
+
+knnPredict3 <- predict(knnFit,newdata = test_pca_units)
+knnPredict3
+
 
 ```
 
