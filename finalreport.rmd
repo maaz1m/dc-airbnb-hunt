@@ -223,41 +223,28 @@ knnPredict2
 
 ```
 
-## PCA
-
-## Comparison
-
-# Example predictions
-
-# Future work
-
-# Conclusion and Discussion
 
 
-# References
-
-
-```{r results='markup'}
+## Random Forest
+```{r}
 # encode the variables
-
 library(mltools)
 library(data.table)
 library(randomForest)
 library(Metrics)
+
 df.prep = as.data.table(df)
 df_encoded = one_hot(df.prep)
 ```
 
-
-
-```{r results = 'markup'}
+```{r}
 # drop unnecessary columns that cant be proceeded not encoded correctly
-df_pcr = subset(df_encoded, select = -c(id, name, amenities))
+#df_pcr = subset(df_encoded, select = -c(id, name, amenities))
 #df_pcr[,165]
 #df_pcr[,80]
-df_pcr = df_pcr[,-c(80,165)]
+#df_pcr = df_pcr[,-c(80,165)]
+df_pcr = df_encoded
 ```
-
 
 
 ```{r results = 'markup'}
@@ -310,10 +297,37 @@ pred_total = predict(rf.model2, df_pcr)
 
 res_total = df_pcr$price - pred_total
 
+output = data.frame(pred_total, df_pcr$price)
+
+names(output) <- c('Predictions', 'Actuals')
+
+str(output)
+head(output)
+```
+
+```{r}
 rm = rmse(df_pcr$price , pred_total)
 
 rsq = 1 - var(res_total) / var(df_pcr$price)
 
 ma = mae(df_pcr$price , pred_total)
+
+rm
+
+rsq
+
+ma
 ```
 The MSE of Random Forest is ```r rm```, R-Sqaured is ```r rsq```, MAE is ```r ma```
+
+
+## Comparison
+
+# Example predictions
+
+# Future work
+
+# Conclusion and Discussion
+
+
+# References
