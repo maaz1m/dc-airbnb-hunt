@@ -22,6 +22,8 @@ library(kableExtra)
 library(leaflet)
 library(tidytext)
 library(stringr)
+library(caret)
+library(class)
 knitr::opts_chunk$set(warning = FALSE, fig.align = 'center')
 ```
 
@@ -91,6 +93,13 @@ for (a in top_amenities$amenity){
 df %>% select(bed_linens:breakfast) %>% head()  %>% kable()
 ```
 
+```{r}
+test_units <- read.csv("team5unit.csv")
+test_units$bedrooms <- as.factor(test_units$bedrooms)
+test_units$beds <- as.integer(test_units$beds)
+test_units <- test_units %>% mutate_if(is.logical,as.factor)
+colnames(test_units)[76] <- "room-darkening_shades"
+```
 
 # Exploratory Data Analysis
 
@@ -101,6 +110,95 @@ df %>% select(bed_linens:breakfast) %>% head()  %>% kable()
 ## Regression Tree
 
 ## K-nearest Neighbours
+```{r}
+#prepare data for KNN
+#union in values for team units
+
+str(df)
+#remove non-necessary (non-numeric) columns
+df_knn1<- df[,-c(2,4,5,10,23,62:65,68)]
+test_units_knn <- test_units[,-c(2,4,5,10,23,62:65,68)]
+df_comb <-union(df_knn1,test_units_knn)
+df_comb$neighbourhood <- as.factor(df_comb$neighbourhood)
+df_comb$room_type <- as.factor(df_comb$room_type)
+df_knn <- df_comb %>% mutate_if(is.factor,as.numeric)
+df_knn$accommodates <- as.numeric(df_knn$accommodates)
+df_knn$beds <- as.numeric(df_knn$beds)
+df_knn[,8:79] <- df_knn[,8:79]-1
+df_knn <- na.omit(df_knn)
+
+#remove id
+df_knn <- df_knn[,-1]
+#separate team units for future use
+df_knn_units <- df_knn[6903:6905,]
+df_knn <- df_knn[-c(6903:6905),]
+
+#dataset is now all numeric
+str(df_knn_units)
+str(df_knn)
+```
+
+```{r}
+#pca to determine threshold for preprocessing
+
+pr.out <- prcomp(df_knn, scale =TRUE) 
+summary(pr.out)
+
+biplot(pr.out, scale = 0)
+
+
+pr.var <- (pr.out$sdev^2)
+pve <- pr.var/sum(pr.var)
+plot(cumsum(pve), xlab="Principal Component (standardized)", ylab ="Cumulative Proportion of Variance Explained",ylim=c(0,1),type="b")
+
+#to decrease the variables significantly we will want to reduce variance explained threshold to 80%
+```
+
+```{r}
+#Run KNN with scale, pca and center preprocessing (threshold is .8 for pca)
+
+
+ctrl <- trainControl(method = "repeatedcv", number = 5, repeats=3, preProcOptions = list(thresh = 0.80))
+
+knnFit <- train(price ~ .,
+                data = train, 
+                method     = "knn",
+                tuneGrid   = expand.grid(k = 1:10),
+                trControl  = ctrl, 
+                preProcess = c('scale','pca','center'),
+                metric     = "RMSE")
+
+knnFit
+```
+
+```{r}
+#test model accuracy
+knnPredict <- predict(knnFit,newdata = test[,-6])
+
+mse = mean((test[,6] - knnPredict)^2)
+mae = caret::MAE(test[,6], knnPredict)
+rmse = caret::RMSE(test[,6], knnPredict)
+
+cat("MSE: ", mse, "MAE: ", mae, " RMSE: ", rmse)
+```
+
+```{r}
+#plot comparison
+x = 1:length(test[,6])
+plot(x, test[,6], col = "firebrick1", type = "l", lwd=2,
+     main = "DC AirBnB test data prediction")
+lines(x, knnPredict, col = "dodgerblue", lwd=2)
+legend("topright",  legend = c("original-price", "predicted-price"), 
+       fill = c("red", "blue"), col = 2:3,  adj = c(0, 0.6))
+```
+```{r}
+#predict our unit prices
+
+knnPredict2 <- predict(knnFit,newdata = df_knn_units[,-6])
+
+knnPredict2
+
+```
 
 ## Support Vector Machine
 
