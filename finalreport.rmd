@@ -108,6 +108,11 @@ colnames(test_units)[58] <- "room-darkening_shades"
 ```
 # Exploratory Data Analysis
 
+```{r}
+library(corrplot)
+corrplot(df, order = 'AOE') # after 'AOE' reorder
+```
+
 # Modeling
 
 ```{r echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
@@ -182,6 +187,8 @@ df_knn$beds <- as.numeric(df_knn$beds)
 df_knn[,9:70] <- df_knn[,9:70]-1
 df_knn <- na.omit(df_knn)
 
+
+
 #separate team units for future use
 df_knn_units <- df_knn[6903:6905,]
 df_knn <- df_knn[-c(6903:6905),]
@@ -197,6 +204,37 @@ train  <-  df_knn[indexes, ]
 test <-  df_knn[-indexes, ]
 
 
+```
+
+```{r}
+d <- df_knn[,9:70]
+d <- data.frame(ammenity = names(d),amount=colSums(d))
+sums <- d[order(-d$amount),]
+sums <- head(sums,15)
+
+## set the levels in order we want
+
+ggplot(data=sums, aes(x=reorder(ammenity, -amount), y=amount)) +
+  geom_bar(stat="identity", fill ="dodgerblue")+
+  theme(axis.text.x = element_text(angle = 90, size=14))+
+  theme(axis.text.x = element_text(angle = 90),
+        axis.title.x = element_text(size = 14),
+        axis.title.y = element_text(size = 14),
+        plot.title = element_text(color="black", face="bold", size=18, hjust=0),
+        panel.grid.major = element_line(colour = "grey90", size = 0.2),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = 'white'),
+        legend.position = "none")+
+        labs( x="Amenity (Top 15)", y="Frequency")+
+        ggtitle("Distribution of Amenities in DC AirBnBs")
+
+
+library(corrplot)
+colnames(df_knn)
+df_knn_corr <- df_knn[,c(1,4,5,7,8,9,10,26,34,35,37,38,40,43,46,49,50,66,67,68,69)]
+m <- cor(df_knn_corr)
+corrplot(m, method = 'shade', diag = FALSE,  tl.cex = 0.7, type="upper", 
+         tl.col = "darkblue", tl.srt = 45)
 ```
 
 ```{r}
@@ -236,7 +274,8 @@ knnFit0 <- train(price ~ .,
 
 knnFit0
 
-#with PCA
+
+#with PCA 30
 
 # Creating a new dataset
 train_pca <-  data.frame( price = train$price, pr.out$x )
@@ -255,12 +294,14 @@ ctrl <- trainControl(method = "repeatedcv", number = 5, repeats=3)
 knnFit <- train(price ~ .,
                 data = new_train, 
                 method     = "knn",
-                tuneGrid   = expand.grid(k = 1:10),
+                tuneGrid   = expand.grid(k = 1:30),
                 trControl  = ctrl, 
                 preProcess = c('scale','center'),
                 metric     = "RMSE")
 
 knnFit
+
+
 ```
 
 ```{r}
@@ -273,9 +314,15 @@ mse0 = mean((test$price - knnPredict0)^2)
 mae0 = caret::MAE(test$price, knnPredict0)
 rmse0 = caret::RMSE(test$price, knnPredict0)
 
+##R-square
+SSres = sum((test$price - knnPredict0)^2)
+SStot = sum((test$price - mean(train$price))^2)
+Rsquare = 1 - SSres/SStot
+
+
 cat("MSE: ", mse0, "MAE: ", mae0, " RMSE: ", rmse0)
 
-#test model accuracy with pca
+#test model accuracy with pca 30
 knnPredict <- predict(knnFit,newdata = new_test)
 
 mse = mean((test$price - knnPredict)^2)
@@ -283,6 +330,8 @@ mae = caret::MAE(test$price, knnPredict)
 rmse = caret::RMSE(test$price, knnPredict)
 
 cat("MSE: ", mse, "MAE: ", mae, " RMSE: ", rmse)
+
+
 ```
 
 ```{r}
@@ -292,13 +341,28 @@ cat("MSE: ", mse, "MAE: ", mae, " RMSE: ", rmse)
 
 x <- 1:length(test$price)
 plot(x, test$price, col = "firebrick1", type = "l", lwd=2,
-     main = "DC AirBnB test data prediction")
+     main = "DC AirBnB Data Prediction vs. Actual",ylab="Price ($)")
 lines(x, knnPredict0, col = "dodgerblue", lwd=2)
-legend("topright",  legend = c("original-price", "predicted-price"), 
+legend("topright",  legend = c("Original-Price", "Predicted-Price"), 
        fill = c("firebrick1", "dodgerblue"), col = 2:3,  adj = c(0, 0.6))
 
+# calculate accuracy.
+kNN_res = table(knnPredict0,
+                test$price)
+kNN_res
+sum(kNN_res)  #<- the total is all the test examples
 
-#plot comparison with PCA
+# Select the true positives and true negatives by selecting
+# only the cells where the row and column names are the same.
+kNN_res[row(kNN_res) == col(kNN_res)]
+
+# Calculate the accuracy rate by dividing the correct classifications
+# by the total number of classifications.
+kNN_acc = sum(kNN_res[row(kNN_res) == col(kNN_res)]) / sum(kNN_res)
+kNN_acc*100
+
+
+#plot comparison with PCA 30
 new_test_g <- cbind(test[,8], new_test)
 colnames(new_test_g)[1] <- "price"
 
@@ -309,7 +373,23 @@ lines(x, knnPredict, col = "dodgerblue", lwd=2)
 legend("topright",  legend = c("original-price", "predicted-price"), 
        fill = c("firebrick1", "dodgerblue"), col = 2:3,  adj = c(0, 0.6))
 
+# calculate accuracy.
+kNN_res2 = table(knnPredict,
+                new_test_g$price)
+kNN_res2
+sum(kNN_res2)  #<- the total is all the test examples
+
+# Select the true positives and true negatives by selecting
+# only the cells where the row and column names are the same.
+kNN_res2[row(kNN_res2) == col(kNN_res2)]
+
+# Calculate the accuracy rate by dividing the correct classifications
+# by the total number of classifications.
+kNN_acc2 = sum(kNN_res2[row(kNN_res2) == col(kNN_res2)]) / sum(kNN_res2)
+kNN_acc2*100
+
 ```
+
 ```{r}
 #predict our unit prices without PCA
 
