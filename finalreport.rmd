@@ -108,10 +108,6 @@ colnames(test_units)[58] <- "room-darkening_shades"
 ```
 # Exploratory Data Analysis
 
-```{r}
-library(corrplot)
-corrplot(df, order = 'AOE') # after 'AOE' reorder
-```
 
 # Modeling
 
@@ -238,22 +234,22 @@ corrplot(m, method = 'shade', diag = FALSE,  tl.cex = 0.7, type="upper",
 ```
 
 ```{r}
-#pca to determine threshold for variables for knn
-
-# dataset
-pca_train = train %>% select( -price )
-pca_test = test %>% select( -price )
-pca_test_units <- df_knn_units %>% select( -price )
-
-pr.out <- prcomp(pca_train, scale =TRUE) 
-summary(pr.out)
-
-biplot(pr.out, scale = 0)
-
-
-pr.var <- (pr.out$sdev^2)
-pve <- pr.var/sum(pr.var)
-plot(cumsum(pve), xlab="Principal Component (standardized)", ylab ="Cumulative Proportion of Variance Explained",ylim=c(0,1),type="b")
+# #pca to determine threshold for variables for knn
+# 
+# # dataset
+# pca_train = train %>% select( -price )
+# pca_test = test %>% select( -price )
+# pca_test_units <- df_knn_units %>% select( -price )
+# 
+# pr.out <- prcomp(pca_train, scale =TRUE) 
+# summary(pr.out)
+# 
+# biplot(pr.out, scale = 0)
+# 
+# 
+# pr.var <- (pr.out$sdev^2)
+# pve <- pr.var/sum(pr.var)
+# plot(cumsum(pve), xlab="Principal Component (standardized)", ylab ="Cumulative Proportion of Variance Explained",ylim=c(0,1),type="b")
 
 #to decrease the variables significantly we will want to reduce variance explained threshold to 80%
 ```
@@ -275,31 +271,31 @@ knnFit0 <- train(price ~ .,
 knnFit0
 
 
-#with PCA 30
-
-# Creating a new dataset
-train_pca <-  data.frame( price = train$price, pr.out$x )
-test_pca <- as.data.frame( predict( pr.out, newdata = pca_test ) )
-test_pca_units <-  as.data.frame(predict(pr.out, newdata=pca_test_units))
-
-new_train = train_pca[, 1:31]
-new_test =  test_pca[, 1:30]
-unit_pred =  test_pca_units[, 1:30]
-
-
-#run new knn
-
-ctrl <- trainControl(method = "repeatedcv", number = 5, repeats=3)
-
-knnFit <- train(price ~ .,
-                data = new_train, 
-                method     = "knn",
-                tuneGrid   = expand.grid(k = 1:30),
-                trControl  = ctrl, 
-                preProcess = c('scale','center'),
-                metric     = "RMSE")
-
-knnFit
+# #with PCA 30
+# 
+# # Creating a new dataset
+# train_pca <-  data.frame( price = train$price, pr.out$x )
+# test_pca <- as.data.frame( predict( pr.out, newdata = pca_test ) )
+# test_pca_units <-  as.data.frame(predict(pr.out, newdata=pca_test_units))
+# 
+# new_train = train_pca[, 1:31]
+# new_test =  test_pca[, 1:30]
+# unit_pred =  test_pca_units[, 1:30]
+# 
+# 
+# #run new knn
+# 
+# ctrl <- trainControl(method = "repeatedcv", number = 5, repeats=3)
+# 
+# knnFit <- train(price ~ .,
+#                 data = new_train, 
+#                 method     = "knn",
+#                 tuneGrid   = expand.grid(k = 1:30),
+#                 trControl  = ctrl, 
+#                 preProcess = c('scale','center'),
+#                 metric     = "RMSE")
+# 
+# knnFit
 
 
 ```
@@ -319,17 +315,17 @@ SSres = sum((test$price - knnPredict0)^2)
 SStot = sum((test$price - mean(train$price))^2)
 Rsquare = 1 - SSres/SStot
 
-
-cat("MSE: ", mse0, "MAE: ", mae0, " RMSE: ", rmse0)
-
-#test model accuracy with pca 30
-knnPredict <- predict(knnFit,newdata = new_test)
-
-mse = mean((test$price - knnPredict)^2)
-mae = caret::MAE(test$price, knnPredict)
-rmse = caret::RMSE(test$price, knnPredict)
-
-cat("MSE: ", mse, "MAE: ", mae, " RMSE: ", rmse)
+# 
+# cat("MSE: ", mse0, "MAE: ", mae0, " RMSE: ", rmse0)
+# 
+# #test model accuracy with pca 30
+# knnPredict <- predict(knnFit,newdata = new_test)
+# 
+# mse = mean((test$price - knnPredict)^2)
+# mae = caret::MAE(test$price, knnPredict)
+# rmse = caret::RMSE(test$price, knnPredict)
+# 
+# cat("MSE: ", mse, "MAE: ", mae, " RMSE: ", rmse)
 
 
 ```
@@ -362,31 +358,31 @@ kNN_acc = sum(kNN_res[row(kNN_res) == col(kNN_res)]) / sum(kNN_res)
 kNN_acc*100
 
 
-#plot comparison with PCA 30
-new_test_g <- cbind(test[,8], new_test)
-colnames(new_test_g)[1] <- "price"
-
-x <- 1:length(new_test_g$price)
-plot(x, new_test_g$price, col = "firebrick1", type = "l", lwd=2,
-     main = "DC AirBnB test data prediction")
-lines(x, knnPredict, col = "dodgerblue", lwd=2)
-legend("topright",  legend = c("original-price", "predicted-price"), 
-       fill = c("firebrick1", "dodgerblue"), col = 2:3,  adj = c(0, 0.6))
-
-# calculate accuracy.
-kNN_res2 = table(knnPredict,
-                new_test_g$price)
-kNN_res2
-sum(kNN_res2)  #<- the total is all the test examples
-
-# Select the true positives and true negatives by selecting
-# only the cells where the row and column names are the same.
-kNN_res2[row(kNN_res2) == col(kNN_res2)]
-
-# Calculate the accuracy rate by dividing the correct classifications
-# by the total number of classifications.
-kNN_acc2 = sum(kNN_res2[row(kNN_res2) == col(kNN_res2)]) / sum(kNN_res2)
-kNN_acc2*100
+# #plot comparison with PCA 30
+# new_test_g <- cbind(test[,8], new_test)
+# colnames(new_test_g)[1] <- "price"
+# 
+# x <- 1:length(new_test_g$price)
+# plot(x, new_test_g$price, col = "firebrick1", type = "l", lwd=2,
+#      main = "DC AirBnB test data prediction")
+# lines(x, knnPredict, col = "dodgerblue", lwd=2)
+# legend("topright",  legend = c("original-price", "predicted-price"), 
+#        fill = c("firebrick1", "dodgerblue"), col = 2:3,  adj = c(0, 0.6))
+# 
+# # calculate accuracy.
+# kNN_res2 = table(knnPredict,
+#                 new_test_g$price)
+# kNN_res2
+# sum(kNN_res2)  #<- the total is all the test examples
+# 
+# # Select the true positives and true negatives by selecting
+# # only the cells where the row and column names are the same.
+# kNN_res2[row(kNN_res2) == col(kNN_res2)]
+# 
+# # Calculate the accuracy rate by dividing the correct classifications
+# # by the total number of classifications.
+# kNN_acc2 = sum(kNN_res2[row(kNN_res2) == col(kNN_res2)]) / sum(kNN_res2)
+# kNN_acc2*100
 
 ```
 
@@ -396,10 +392,10 @@ kNN_acc2*100
 knnPredict2 <- predict(knnFit0,newdata = df_knn_units[,-8])
 knnPredict2
 
-#predict our unit prices with PCA
-
-knnPredict3 <- predict(knnFit,newdata = test_pca_units)
-knnPredict3
+# #predict our unit prices with PCA
+# 
+# knnPredict3 <- predict(knnFit,newdata = test_pca_units)
+# knnPredict3
 
 
 ```
