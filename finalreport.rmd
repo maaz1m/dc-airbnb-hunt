@@ -108,11 +108,6 @@ colnames(test_units)[58] <- "room-darkening_shades"
 ```
 # Exploratory Data Analysis
 
-```{r}
-library(corrplot)
-corrplot(df, order = 'AOE') # after 'AOE' reorder
-```
-
 # Modeling
 
 ```{r echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
@@ -160,7 +155,7 @@ ggplot(lr_top_features, aes(x=feature, y = Estimate)) + geom_bar(stat="identity"
 # fit model
 tree_fit <- rpart(price ~ ., method="anova", control=rpart.control(minsplit=100, cp=0.01), data=df)
 printcp(tree_fit)
-tree_pruned <- prune.tree(tree_fit)
+#tree_pruned <- prune.tree(tree_fit)
 
 # metrics
 tree_pred <- predict(tree_fit)
