@@ -1,6 +1,6 @@
 ---
 title: "D.C. Airbnb Hunt"
-author: "Foo Fivers: Adrienne Rogers ; Atharva Haldankar ; Mohammad Maaz ; Ricky Li"
+author: "Foo Fivers: Adrienne Rogers ; Atharva Haldankar ; Mohammad Maaz ; Ruiqi Li"
 date: "`r Sys.Date()`"
 output:
   prettydoc::html_pretty:
@@ -531,15 +531,3 @@ df_test = tail(whole, n = 3)
 
 predict(rf.model2, df_test)
 ```
-
-
-
-## Comparison
-
-# Example predictions
-
-# Future work
-
-# Conclusion and Discussion
-
-# References
