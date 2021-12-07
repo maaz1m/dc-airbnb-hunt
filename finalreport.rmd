@@ -1,6 +1,6 @@
 ---
 title: "D.C. Airbnb Hunt"
-author: "Foo Fivers: Adrienne Rogers ; Atharva Haldankar ; Mohammad Maaz ; Ricky Li"
+author: "Foo Fivers: Adrienne Rogers ; Atharva Haldankar ; Mohammad Maaz ; Ruiqi Li"
 date: "`r Sys.Date()`"
 output:
   prettydoc::html_pretty:
@@ -119,6 +119,8 @@ corrplot(df, order = 'AOE') # after 'AOE' reorder
 str(df)
 ```
 
+## Linear Regression
+
 ```{r}
 
 # fit model
@@ -174,9 +176,8 @@ library(rpart.plot)
 prp(tree_fit)
 ```
 
-
-
 ## K-nearest Neighbours
+
 ```{r}
 #prepare data for KNN
 #union in values for team units
@@ -411,10 +412,9 @@ knnPredict3
 
 ```
 
-
-
 ## Random Forest
-```{r}
+
+```{r echo=FALSE}
 # encode the variables
 library(mltools)
 library(data.table)
@@ -435,7 +435,7 @@ df_pcr = df_encoded
 ```
 
 
-```{r results = 'markup'}
+```{r}
 #split train test
 data = sort(sample(nrow(df_pcr), nrow(df_pcr)*0.7))
 train_data = df_pcr[data,]
@@ -463,8 +463,6 @@ names(train_data) <- gsub("/", ".", names(train_data))
 names(test_data) <- gsub("/", ".", names(test_data))
 ```
 
-
-
 ```{r results = 'markup'}
 rf.model2 = randomForest(price ~ ., data=train_data, type = 'regression', ntree = 2000, mtry = 10, importance = TRUE, na.action = na.omit)
 ```
@@ -477,8 +475,6 @@ print(rf.model2)
 plot(rf.model2)
 ```
 
-
-
 ```{r}
 #install.packages('Metrics')
 pred_total = predict(rf.model2, df_pcr)
@@ -490,7 +486,7 @@ output = data.frame(pred_total, df_pcr$price)
 names(output) <- c('Predictions', 'Actuals')
 
 str(output)
-head(output)
+output
 ```
 
 ```{r}
@@ -500,66 +496,38 @@ rsq = 1 - var(res_total) / var(df_pcr$price)
 
 ma = mae(df_pcr$price , pred_total)
 
+print('Root Mean Squared Error:')
 rm
 
+print('R-Squared:')
 rsq
 
+print('Mean Absolute Error:')
 ma
 ```
 The MSE of Random Forest is ```r rm```, R-Sqaured is ```r rsq```, MAE is ```r ma```
 
-## Linear Regression
 
-```{r echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
-df <- read.csv('listings_detailed.csv')
-df <- df %>% 
-  dplyr::select(id, name, host_is_superhost, host_listings_count, neighbourhood_cleansed, latitude, longitude, room_type, bedrooms, beds, amenities, price, availability_60, number_of_reviews, review_scores_rating,  review_scores_accuracy, review_scores_cleanliness,
-            review_scores_checkin, review_scores_communication, review_scores_location, review_scores_value, reviews_per_month) %>% 
-  dplyr::mutate(price = as.numeric(parse_number(price)),
-         neighbourhood_cleansed = as.factor(neighbourhood_cleansed),
-         amenities = lengths(strsplit((str_sub(df$amenities, 2, -2)), ",")),
-         room_type = as.factor(room_type),
-         bedrooms = as.factor(bedrooms)) %>%
-  dplyr::rename(neighbourhood = neighbourhood_cleansed)
-df = na.omit(df)
+# Predict the Example 3 Prices
 
+```{r results = 'markup'}
+test_units.prep = as.data.table(test_units)
 
-#create column for neighborhood name in visualizations
-df$neighbourhood_short <- str_sub(df$neighbourhood,1,15)
-#add in column for frequency of listings
-df_freq <- merge(df, data.frame(table(neighbourhood = df$neighbourhood)), by = c("neighbourhood"))
+# get columns we need
+test_units.prep <- test_units.prep %>% 
+  mutate(neighbourhood = as.factor(neighbourhood),
+         room_type = as.factor(room_type))
 
-#subset data where frequency is greater than 175
-df_175 <-  df_freq[ which(df_freq$Freq>175), ]
+test_units_encoded = one_hot(test_units.prep)
+
+names(test_units_encoded) <- gsub(" ", "_", names(test_units_encoded))
+names(test_units_encoded) <- gsub(",", "", names(test_units_encoded))
+names(test_units_encoded) <- gsub("-", ".", names(test_units_encoded))
+names(test_units_encoded) <- gsub("/", ".", names(test_units_encoded))
+
+whole = rbind(df_pcr, test_units_encoded, fill=TRUE)
+whole[is.na(whole)] <- 0
+df_test = tail(whole, n = 3)
+
+predict(rf.model2, df_test)
 ```
-
-```{r echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
-library("leaps")
-
-df$host_is_superhost = factor(df$host_is_superhost)
-df$neighbourhood_short= factor(df$neighbourhood_short)
-df_new = subset(df,select = -c(name,neighbourhood,latitude,longitude,host_listings_count,id))
-reg.best10 <- regsubsets(price ~. , data = df_new, nvmax = 10, nbest = 2, method = "exhaustive",really.big = T)
-plot(reg.best10, scale = "adjr2", main = "Adjusted R^2")
-summary(reg.best10)
-```
-
-```{r, echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
-unique(df_new$neighbourhood_short,incomparables = FALSE)
-```
-
-```{r, echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
-priceee = data.frame(neighbourhood_short= "Downtown, China",room_type ="Entire home/apt",bedrooms="5",amenities=44 )
-predict(model1,priceee, type = "response", se = TRUE)
-```
-
-## Comparison
-
-# Example predictions
-
-# Future work
-
-# Conclusion and Discussion
-
-
-# References
