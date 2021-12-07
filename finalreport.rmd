@@ -120,6 +120,12 @@ str(df)
 ```
 
 ```{r}
+
+# fit model
+lr <- lm(price ~ ., data = df)
+summary(lr)
+
+# metrics
 lr <- lm(price ~ ., data = df)
 summary(lr)
 
@@ -129,9 +135,10 @@ actual <- df$price
 lr_mse <- mean((actual - lr_pred)^2)
 lr_rmse <- sqrt(mean((actual - lr_pred)^2))
 lr_mae <- mean(abs(actual - lr_pred))
-cat('RMSE:', lr_rmse)
-cat('MSE:', lr_mse)
-cat('MAE:', lr_mae)
+cat('RMSE:', lr_rmse, 'MAE:', lr_mae)
+
+# plot model evaluation
+plot(lr)
 
 # feature importance
 lr_all_features <- summary(lr)$coefficients %>% as.data.frame()
@@ -149,8 +156,9 @@ ggplot(lr_top_features, aes(x=feature, y = Estimate)) + geom_bar(stat="identity"
 
 ```{r}
 # fit model
-tree_fit <- rpart(price ~ ., method="anova", data=df)
+tree_fit <- rpart(price ~ ., method="anova", control=rpart.control(minsplit=100, cp=0.01), data=df)
 printcp(tree_fit)
+tree_pruned <- prune.tree(tree_fit)
 
 # metrics
 tree_pred <- predict(tree_fit)
@@ -158,13 +166,12 @@ actual <- df$price
 tree_mse <- mean((actual - tree_pred)^2)
 tree_rmse <- sqrt(mean((actual - tree_pred)^2))
 tree_mae <- mean(abs(actual - tree_pred))
-cat('RMSE:', tree_rmse)
-cat('MSE:', tree_mse)
-cat('MAE:', tree_mae)
+tree_r2 <- R2(actual, tree_pred)
+cat('RMSE:', tree_rmse, 'MAE:', tree_mae, 'R2:', tree_r2)
 
-# plot feature importance
-tree_top_features <- sort(tree_fit$variable.importance, decreasing = TRUE)[1:5]
-barplot(tree_top_features, xlab = 'feature', ylab = 'importance')
+# plot tree
+library(rpart.plot)
+prp(tree_fit)
 ```
 
 
