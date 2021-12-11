@@ -30,9 +30,9 @@ knitr::opts_chunk$set(warning = FALSE, fig.align = 'center')
 
 # Introduction
 
-The increase in flexibility in the workplace to allow for remote work across the country has led to an increase in renters moving across the country. According to Bloomberg, the rental occupancy rate in the US hit 97% in July 2021 [REFERENCE], increasing the demand and subsequently giving landlords the power to raise the rental rates in their neighborhoods. 
+The increase in flexibility in the workplace to allow for remote work across the country has led to an increase in renters moving across the country. According to Bloomberg Wealth, the rental occupancy rate in the US hit 97% in July 2021, increasing the demand and subsequently giving landlords the power to raise the rental rates in their neighborhoods. 
 
-This hot market has many homeowners to consider the option of renting just a portion of their space to the entire property. One way to enter this market is through a rental company such as AirBnB which allows property owners to list short term and long term rentals without needing to put together a lease. Without a lease, renters through AirBnB need to market their property appropriately to ensure a year round occupancy and the key to this is setting the right price.
+This hot market has many homeowners to consider the option of renting just a portion of their space to the entire property. One way to enter this market is through a rental company such as AirBnB which allows property owners to list short term and long term rentals without needing to put together a lease. As rocketmorgage explains, AirBnB can be an intriguing option for property owners, as the variation in the lengths of stays offered can allow an owner to charge an overall greater amount per night than they could in a tradditional lease. However, without a lease, renters through AirBnB need to market their property appropriately to ensure a year round occupancy is kept. It is this risk that makes it key to make sure the right price is selected. 
 
 Renters and travelers  looking to book an Airbnb for a short term or long term rental may have hundreds of options to choose from depending on their preferences and locality. The District of Columbia (DC), for example, offers some 7,800 Airbnb listings to travelers to choose from at any time. In markets like this, property owners must make themselves competitive by trying to offer the best price for their property. 
 
@@ -324,9 +324,11 @@ knnFit0
 
 ```
 
-With this model, we will now input the test data to measure our model's accuracy.
+With this model, we will now input the test data to measure our model's accuracy to determine just how good of a job it does at predicting price. To do this we will compare the predicted prices outputted from our model against the actual prices in our test data. The summary of our test data is shown below. 
 
 ```{r}
+
+summary(test)
 
 #test model accuracy without pca
 knnPredict0 <- predict(knnFit0,newdata = test[,-8])
@@ -358,6 +360,8 @@ Rsquare = 1 - SSres/SStot
 
 We find that this model has a $r^2$ of `r Rsquare`, an MSE of `r mse0`, an MAE of `r mae0` and a rmse of `r rmse0`. These results do not show a significantly strong model.
 
+The plot below shows a graphical representation of this analysis by showing the predicted price in blue and the actual price in red. We see that while the pattern of the predicted does match the pattern of the predicted, the model overall tends to underpredict the actual price.
+
 ```{r, results = show}
 
 #plot comparison without PCA
@@ -365,7 +369,7 @@ We find that this model has a $r^2$ of `r Rsquare`, an MSE of `r mse0`, an MAE o
 
 x <- 1:length(test$price)
 plot(x, test$price, col = "firebrick1", type = "l", lwd=2,
-     main = "DC AirBnB Data Prediction vs. Actual",ylab="Price ($)")
+     main = "DC AirBnB Price by Unit (Predicted and Actual)",ylab="Price ($)")
 lines(x, knnPredict0, col = "dodgerblue", lwd=2)
 legend("topright",  legend = c("Original-Price", "Predicted-Price"), 
        fill = c("firebrick1", "dodgerblue"), col = 2:3,  adj = c(0, 0.6))
@@ -427,7 +431,9 @@ acc_perc3 <- kNN_acc3*100
 
 When plotting the predicted data from our model against the test data we find that we only have an accuracy rate of `r acc_perc`%. Even though this is low, we understand that price being a continuous variable, it makes it very hard to predict the price perfectly. To account for this, we also tested for the accuracy of the model predicting price to the accurate tens and hundreds. For the tens we have an accuracy of `r acc_perc2`% and at the hundreds we have `r acc_perc3`%. None of these levels show the model having a good accuracy percentage at predicting price. 
 
-This backs up our findings earlier that this model did not explain a signifcant portion of the variance. This may suggest that either KNN regression is not the best modeling technique for this problem, or that there are additinal variables not within this dataset that should be considered when predicting price. 
+This backs up our findings earlier that this model did not explain a significant portion of the variance. This may suggest that either KNN regression is not the best modeling technique for this problem, or that there are additional variables not within this dataset that should be considered when predicting price. 
+
+We should continue to look at additional modeling techniques for this problem before predicting the price of our units. 
 
 ```{r}
 #predict our unit prices without PCA
@@ -565,3 +571,9 @@ predict(rf.model2, df_test)
 
 #Conclusion and Next Steps  
 
+# References
+
+1. Wells, Charlie. (2021, August 26). Bloomberg Wealth: It's Never Been a Better Time to Be a Landlord. Retrieved December 11, 2021, from https://www.bloomberg.com/news/newsletters/2021-08-26/house-rentals-the-u-s-rental-market-is-surging-right-now-here-s-what-to-do.
+
+2.Ziraldo, Katie. (2021, November 18). Airbnb Investment: Is It Right For You In 2021? Retrieved December 11, 2021, from
+https://www.rocketmortgage.com/learn/airbnb-investment
