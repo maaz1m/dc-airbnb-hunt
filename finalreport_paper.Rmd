@@ -49,7 +49,7 @@ For this final project, Team Five owns three properties in DC that we would like
 df <- read.csv('listings_detailed.csv')
 ```
 
-The raw data is obtained from Inside Airbnb, an open-source data tool providing the web scraped Airbnb listing information by cities. It includes `r nrow(df)` records with `r ncol(df)` data columns in total size. Below are all of the data columns. For example, we have columns for id, price, host name, location, neighborhood, review ratingscore, etc.
+The raw data is obtained from Inside Airbnb, an open-source data tool providing the web scraped Airbnb listing information by cities. It includes `r nrow(df)` records with `r ncol(df)` data columns in total size. Below are all of the data columns. For example, we have columns for id, price, host name, location, neighborhood, review rating scores, etc.
   
 ```{r}
 glimpse(df)
@@ -107,7 +107,13 @@ df <- df %>% select(-amenities)
 df %>% select(bed_linens:breakfast) %>% head()  %>% kable()
 ```
 
-We have created a dataset with our three properties, one shared room in DuPont Circle for 1 guest, one private room near Howard University for up to two guests and one entire property in Capitol Hill for up to eight guests. This dataset will be fed into the final model we select to predict the competitive price for each unit. 
+We have created a dataset with our three properties:
+
+one shared room in Dupont Circle for 1 guest with access to bathtub, fireplace, kitchen, and street parking,
+one private room near Howard University for up to 2 guests with access to backyard with grill, kitchen with breakfast, and on premise parking,
+one entire property in Capitol Hill for up to 8 guests with access to backyard with grill, air conditions, street parking, and early luggage drop off.
+
+This dataset will be fed into the final model we select to predict the competitive price for each unit. 
 
 ```{r}
 test_units <- read.csv("team5unit.csv")
@@ -172,8 +178,8 @@ ggplot(data=sums, aes(x=reorder(ammenity, -amount), y=amount)) +
         panel.grid.minor = element_blank(),
         panel.background = element_rect(fill = 'white'),
         legend.position = "none")+
-        labs( x="Amenity (Top 15)", y="Frequency")+
-        ggtitle("Distribution of Amenities in DC AirBnBs")
+  labs( x="Amenity (Top 15)", y="Frequency")+
+  ggtitle("Distribution of Amenities in DC AirBnBs")
 
 
 library(corrplot)
@@ -285,12 +291,12 @@ The training dataset for this model was created with 80% split of the numerical 
 ctrl0 <- trainControl(method = "repeatedcv", number = 5, repeats=3)
 
 knnFit0 <- train(price ~ .,
-                data = train, 
-                method     = "knn",
-                tuneGrid   = expand.grid(k = 1:30),
-                trControl  = ctrl0, 
-                preProcess = c('scale','center'),
-                metric     = "RMSE")
+                 data = train, 
+                 method     = "knn",
+                 tuneGrid   = expand.grid(k = 1:30),
+                 trControl  = ctrl0, 
+                 preProcess = c('scale','center'),
+                 metric     = "RMSE")
 
 knnFit0
 
@@ -451,7 +457,9 @@ We should continue to look at additional modeling techniques for this problem be
 
 ## Random Forest
 
-```{r echo=FALSE}
+We then use the random forest regression for modeling. Since there are multiple categorical variables in the data, we initally do the one-hot encoding, which is to give a dummy for each categorical variable. For example, if column A has True/False value, we then divide this column A into column_A_True and column_A_False, and both columns have two levels of values: 0 and 1. This is an ordinary technique to input the categorical variables into the models.
+
+```{r echo=FALSE, include = FALSE}
 # encode the variables
 library(mltools)
 library(data.table)
@@ -462,7 +470,7 @@ df.prep = as.data.table(df)
 df_encoded = one_hot(df.prep)
 ```
 
-```{r}
+```{r include = FALSE}
 # drop unnecessary columns that cant be proceeded not encoded correctly
 #df_pcr = subset(df_encoded, select = -c(id, name, amenities))
 #df_pcr[,165]
@@ -471,15 +479,16 @@ df_encoded = one_hot(df.prep)
 df_pcr = df_encoded
 ```
 
+We rename the columns' names to get rid of the special characters and symbols for more convenient input. And we use the train-test-split by 7:3. 
 
-```{r}
+```{r include = FALSE}
 #split train test
 data = sort(sample(nrow(df_pcr), nrow(df_pcr)*0.7))
 train_data = df_pcr[data,]
 test_data = df_pcr[-data,]
 ```
 
-```{r}
+```{r include = FALSE}
 #encode
 names(df_pcr) <- gsub(" ", "_", names(df_pcr))
 names(df_pcr) <- gsub(",", "", names(df_pcr))
@@ -500,19 +509,22 @@ names(train_data) <- gsub("/", ".", names(train_data))
 names(test_data) <- gsub("/", ".", names(test_data))
 ```
 
-```{r results = 'markup'}
+After that, we start building the random forest regression, using the training dataset for fit and setting the number of trees as 2000 and number of considering features at each split as 10, trying to maximize the performance. We print the summary of the model and plot the MSE trend against number of trees.
+
+The result may be not too impressive for its mean of sqaured residuals and percentage of explained variance from the summary. The plot also shows that the MSE cannot be decreased after using around 100 trees for the forest.
+
+```{r include = FALSE}
 rf.model2 = randomForest(price ~ ., data=train_data, type = 'regression', ntree = 2000, mtry = 10, importance = TRUE, na.action = na.omit)
 ```
 
 ```{r results = 'markup'}
 print(rf.model2)
-```
-
-```{r results = 'markup'}
 plot(rf.model2)
 ```
 
-```{r}
+Here is a comparison of predictions and actuals of our data records' price using this model. Each residual could be within 15-30.
+
+```{r results = 'markup'}
 #install.packages('Metrics')
 pred_total = predict(rf.model2, df_pcr)
 
@@ -523,31 +535,22 @@ output = data.frame(pred_total, df_pcr$price)
 names(output) <- c('Predictions', 'Actuals')
 
 str(output)
-output
 ```
 
-```{r}
+```{r include = FALSE}
 rm = rmse(df_pcr$price , pred_total)
 
 rsq = 1 - var(res_total) / var(df_pcr$price)
 
 ma = mae(df_pcr$price , pred_total)
-
-print('Root Mean Squared Error:')
-rm
-
-print('R-Squared:')
-rsq
-
-print('Mean Absolute Error:')
-ma
 ```
-The MSE of Random Forest is ```r rm```, R-Sqaured is ```r rsq```, MAE is ```r ma```
-
+For the evaluation, we again use the RMSE, R-Squared, and MAE as the standards. The RMSE of this Random Forest is ```r rm```, R-Sqaured is ```r rsq```, MAE is ```r ma```. The evaluation is a fair result based on the tuning and inputs yet the model can be improved in the future.
 
 # Predict the Example 3 Prices
 
-```{r results = 'markup'}
+We have made four models in total and have obtained their evaluation results. The random forest regression has the overall best performance among them based on its evaluation scores of RMSE, R-Squared, and MAE. So we will use the random forest regression to predict a competitive price for each of the created listing mentioned at beginning.
+
+```{r include = FALSE}
 test_units.prep = as.data.table(test_units)
 
 # get columns we need
@@ -566,10 +569,24 @@ whole = rbind(df_pcr, test_units_encoded, fill=TRUE)
 whole[is.na(whole)] <- 0
 df_test = tail(whole, n = 3)
 
-predict(rf.model2, df_test)
+pred = predict(rf.model2, df_test)
 ```
 
-#Conclusion and Next Steps  
+Here are our predicted prices: one shared room in DuPont Circle for 1 guest is ```r pred[1]```, one private room near Howard University for up to two guests is ```r pred[2]```, and one entire property in Capitol Hill for up to eight guests is ```r pred[3]```.
+
+one shared room in Dupont Circle for 1 guest with access to bathtub, fireplace, kitchen, and street parking,
+one private room near Howard University for up to 2 guests with access to backyard with grill, kitchen with breakfast, and on premise parking,
+one entire property in Capitol Hill for up to 8 guests with access to backyard with grill, air conditions, street parking, and early luggage drop off.
+
+#Conclusion and Next Steps 
+
+# Conclusions
+
+Based on our results of prediction, the results for private room and entire property are reasonable prices due to their settings; however, the one for the shared room is a bit surprising. Perhaps this price results from the good location of Dupont Circle and a nice fireplace. Overall, these results are partially reliable at this state.
+
+This analysis is full of potentials. We only pick a few variable columns from the dataset, leaving others not being used. We can combine the use of other columns with our current ones to check any improvements. For example, the information of hosts is a good target of next step. Price could be affected whether a host is a superhost and how a host describes the living place. And we have not used much of those various rating scores. We can implement more classification algorithms onto those columns to enhance our models and may obtain better evaluation results. We have focused too much on the Airbnb listings' locations, guest requirements, and amenities.
+
+
 
 # References
 
