@@ -25,7 +25,7 @@ library(stringr)
 library(caret)
 library(class)
 library(rpart)
-knitr::opts_chunk$set(warning = FALSE, fig.align = 'center')
+knitr::opts_chunk$set(warning = FALSE, echo=FALSE, results='hide', fig.align = 'center')
 ```
 
 # Introduction
@@ -75,7 +75,7 @@ We then preprocessed this raw dataset by selecting specific data columns and con
 ```{r, echo = FALSE}
 #pretty output for presentation
 data.frame(variable = names(df),
-           classe = sapply(df, typeof),
+           class = sapply(df, typeof),
            first_values = sapply(df, function(x) paste0(head(x,2),  collapse = ", ")),
            row.names = NULL) %>% 
   kable()
@@ -104,7 +104,7 @@ for (a in top_amenities$amenity){
 
 df <- df %>% select(-amenities)
 
-df %>% select(bed_linens:breakfast) %>% head()  %>% kable()
+df %>% select(bed_linens:cleaning_products) %>% head()  %>% kable()
 ```
 
 We have created a dataset with our three properties:
@@ -181,7 +181,9 @@ ggplot(data=sums, aes(x=reorder(ammenity, -amount), y=amount)) +
   labs( x="Amenity (Top 15)", y="Frequency")+
   ggtitle("Distribution of Amenities in DC AirBnBs")
 
+```
 
+```{r}
 library(corrplot)
 colnames(df_knn)
 df_knn_corr <- df_knn[,c(1,4,5,7,8,9,10,26,34,35,37,38,40,43,46,49,50,66,67,68,69)]
@@ -192,53 +194,80 @@ corrplot(m, method = 'shade', diag = FALSE,  tl.cex = 0.7, type="upper",
 
 # Modeling
 
-```{r echo = FALSE, results = 'markup', message = FALSE, warning = FALSE}
-str(df)
-```
+We attempt to create a predictive model for price using the features available. For this we use classical approaches such as linear regression, k-nearest neighbors, regression tree and random forest.
 
 ## Linear Regression
+
+The first approach we try is classic linear regression. The residuals vs fitted plot shows an even spread of residuals, with no concerning patterns. There are some outliers with very high residuals. The residuals vs leverage plot allows insight into whether these outliers have any undue influence. All points are within the Cook's distance lines, so do not have very high influence on the model. Thus, outlier removal is not expected to be very fruitful.
+
 
 ```{r}
 
 # fit model
-lr <- lm(price ~ ., data = df)
-summary(lr)
+lr <-    lm(price ~ ., data = df)
+plot(lr)
+```
+The high cardinality of a lot of our factor features leads to the number of variables in the model ballooning to 116.
 
-# metrics
-lr <- lm(price ~ ., data = df)
-summary(lr)
+```{r}
+lr_all_features <- summary(lr)$coefficients %>% as.data.frame()
+lr_all_features %>% kable()
+```
+Of the 116 coefficients, only 27 were found significant for the model. We plot the ten most important features based on magnitude of the coefficients to get a better idea of their contributions to the predictions.
 
+```{r}
+lr_top_features <- lr_all_features %>%
+  mutate(feature = rownames(lr_all_features)) %>%
+  filter(`Pr(>|t|)` < 0.05 & feature != '(Intercept)') %>%
+  arrange(abs(Estimate)) %>%
+  select(Estimate, feature) %>%
+  tail(10)
+
+ggplot(lr_top_features, aes(x=feature, y = Estimate)) + geom_bar(stat="identity") + coord_flip()
+```
+
+```{r}
 # metrics
 lr_pred <- predict(lr)
 actual <- df$price
 lr_mse <- mean((actual - lr_pred)^2)
 lr_rmse <- sqrt(mean((actual - lr_pred)^2))
 lr_mae <- mean(abs(actual - lr_pred))
-cat('RMSE:', lr_rmse, 'MAE:', lr_mae)
-
-# plot model evaluation
-plot(lr)
-
-# feature importance
-lr_all_features <- summary(lr)$coefficients %>% as.data.frame()
-lr_top_features <- lr_all_features %>%
-  mutate(feature = rownames(lr_all_features)) %>%
-  filter(`Pr(>|t|)` < 0.05 & feature != '(Intercept)') %>%
-  arrange(abs(Estimate)) %>%
-  select(Estimate, feature) %>%
-  tail(5)
-
-ggplot(lr_top_features, aes(x=feature, y = Estimate)) + geom_bar(stat="identity") + coord_flip()
+lr_r2 <- R2(actual, lr_pred)
 ```
 
+With a root mean squared error of `r lr_rmse`and mean absolute error of `r lr_mae`, the metrics are not very promising. The R**2 value is at an abysmal `r lr_r2`.
+
+Due to the very low R2 value even with a full model, there is no value to be gained by removing insignificant or correlated features. The R2 would decrease with less features. 
+
 ## Regression Tree
+
+We also fit a regression tree to the dataset. To control complexity, we keep `minsplit` as 100 and `cp` as 0.01.
 
 ```{r}
 # fit model
 tree_fit <- rpart(price ~ ., method="anova", control=rpart.control(minsplit=100, cp=0.01), data=df)
 printcp(tree_fit)
-#tree_pruned <- prune.tree(tree_fit)
+```
 
+The variables actually used in tree construction are bedrooms, carbon monoxide alarm, hot water and neighbourhood. This is expected as these are important drivers of price in the real estate market.
+
+
+```{r}
+plotcp(tree_fit)
+```
+
+The graph of X-val relative error vs size of tree shows that the error has plateaued at maximum size of our tree. This indicates the size of our tree is optimum and a bigger tree would not have led to a better model.
+
+```{r}
+# plot tree
+library(rpart.plot)
+prp(tree_fit)
+```
+
+Bedrooms is at the root node of the tree which indicates that it is the most important feature for this model.
+
+```{r}
 # metrics
 tree_pred <- predict(tree_fit)
 actual <- df$price
@@ -246,12 +275,9 @@ tree_mse <- mean((actual - tree_pred)^2)
 tree_rmse <- sqrt(mean((actual - tree_pred)^2))
 tree_mae <- mean(abs(actual - tree_pred))
 tree_r2 <- R2(actual, tree_pred)
-cat('RMSE:', tree_rmse, 'MAE:', tree_mae, 'R2:', tree_r2)
-
-# plot tree
-library(rpart.plot)
-prp(tree_fit)
 ```
+
+With a root mean squared error of `r tree_rmse`and mean absolute error of `r tree_mae`, the metrics are somewhat better than that of the linear regression model. The R**2 value is also much higher at `r lr_r2`.
 
 ## K-nearest Neighbours
 
