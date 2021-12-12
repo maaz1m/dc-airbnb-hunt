@@ -394,7 +394,7 @@ We find that this model has a $r^2$ of `r Rsquare`, an MSE of `r mse0`, an MAE o
 
 The plot below shows a graphical representation of this analysis by showing the predicted price in blue and the actual price in red. We see that while the pattern of the predicted does match the pattern of the predicted, the model overall tends to underpredict the actual price.
 
-```{r, results = show}
+```{r}
 
 #plot comparison without PCA
 
