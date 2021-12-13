@@ -72,7 +72,7 @@ df = na.omit(df)
   
 We then preprocessed this raw dataset by selecting specific data columns and converting the datatypes of some columns. Eventually, the cleaned dataset has `r ncol(df)` records with `r nrow(df)` columns after column renaming and NA removal.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, results = 'show'}
 #pretty output for presentation
 data.frame(variable = names(df),
            class = sapply(df, typeof),
@@ -83,7 +83,7 @@ data.frame(variable = names(df),
 
 The amenities column was not usable as is, so we parse it to create indicator variables for each amenity.
 
-```{r}
+```{r, results = 'show'}
 # remove commas and stuff from amenities
 df$amenities <- tolower(str_replace_all(df$amenities, "[\"\\[\\]]", ""))
 
@@ -240,7 +240,7 @@ To look at only the neighborhoods with a large amount of Airbnb listings to comp
 
 ## Location
 
-We have longitude and latitude available in our dataset. We plot that according to neighbourhood, with radius of a circle indicating the average price of that location. We can see that as we go eastward, away from the downtown area, the prices tend be lower.
+We have longitude and latitude available in our dataset. We plot that according to neighbourhood, with radius of a circle indicating the average price of that location. We can see that as we go westward, away from the downtown area, the prices tend be lower.
 
 ```{r, results = "show"}
 means_df <- df_175 %>%
@@ -328,11 +328,11 @@ plot(lr)
 ```
 The high cardinality of a lot of our factor features leads to the number of variables in the model ballooning to 116.
 
-```{r}
+```{r, results = 'show'}
 lr_all_features <- summary(lr)$coefficients %>% as.data.frame()
 lr_all_features %>% kable()
 ```
-Of the 116 coefficients, only 27 were found significant for the model. We plot the ten most important features based on magnitude of the coefficients to get a better idea of their contributions to the predictions.
+Of the 116 coefficients, only 27 were found significant for the model. We plot the ten most important features based on magnitude of the coefficients to get a better idea of their contributions to the predictions. We can see that the number of bedrooms drives the price up. We can also see that longitude has a highly negative coefficient, which indicates that as we go westward (longitude increases), the price is expected to decrease. We see thisin the map plot as well.
 
 ```{r}
 lr_top_features <- lr_all_features %>%
@@ -357,13 +357,13 @@ lr_r2 <- R2(actual, lr_pred)
 
 With a root mean squared error of `r lr_rmse`and mean absolute error of `r lr_mae`, the metrics are not very promising. The R**2 value is at an abysmal `r lr_r2`.
 
-Due to the very low R2 value even with a full model, there is no value to be gained by removing insignificant or correlated features. The R2 would decrease with less features. 
+Due to the very low R2 value even with a full model, there is no value to be gained by removing insignificant or correlated features for a subsequent linear model. The R2 would decrease with less features. Thus, we shift our focus to other model approaches.
 
 ## Regression Tree
 
 We also fit a regression tree to the dataset. To control complexity, we keep `minsplit` as 100 and `cp` as 0.01.
 
-```{r}
+```{r, results = 'show'}
 # fit model
 tree_fit <- rpart(price ~ ., method="anova", control=rpart.control(minsplit=100, cp=0.01), data=df)
 printcp(tree_fit)
