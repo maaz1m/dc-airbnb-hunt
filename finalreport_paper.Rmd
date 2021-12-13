@@ -242,7 +242,7 @@ To look at only the neighborhoods with a large amount of Airbnb listings to comp
 
 We have longitude and latitude available in our dataset. We plot that according to neighbourhood, with radius of a circle indicating the average price of that location. We can see that as we go eastward, away from the downtown area, the prices tend be lower.
 
-```{r}
+```{r, results = "show"}
 means_df <- df_175 %>%
   group_by(neighbourhood_short,neighbourhood) %>%
   summarise_at(vars(c(price, Freq, latitude,longitude)), funs(mean(., na.rm=TRUE)))
