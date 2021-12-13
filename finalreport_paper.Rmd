@@ -719,19 +719,15 @@ pred = predict(rf.model2, df_test)
 
 Here are our predicted prices: one shared room in DuPont Circle for 1 guest is ```r pred[1]```, one private room near Howard University for up to two guests is ```r pred[2]```, and one entire property in Capitol Hill for up to eight guests is ```r pred[3]```.
 
-one shared room in Dupont Circle for 1 guest with access to bathtub, fireplace, kitchen, and street parking,
-one private room near Howard University for up to 2 guests with access to backyard with grill, kitchen with breakfast, and on premise parking,
-one entire property in Capitol Hill for up to 8 guests with access to backyard with grill, air conditions, street parking, and early luggage drop off.
-
-#Conclusion and Next Steps 
-
 # Conclusions
 
 Based on our results of prediction, the results for private room and entire property are reasonable prices due to their settings; however, the one for the shared room is a bit surprising. Perhaps this price results from the good location of Dupont Circle and a nice fireplace. Overall, these results are partially reliable at this state.
 
-This analysis is full of potentials. We only pick a few variable columns from the dataset, leaving others not being used. We can combine the use of other columns with our current ones to check any improvements. For example, the information of hosts is a good target of next step. Price could be affected whether a host is a superhost and how a host describes the living place. And we have not used much of those various rating scores. We can implement more classification algorithms onto those columns to enhance our models and may obtain better evaluation results. We have focused too much on the Airbnb listings' locations, guest requirements, and amenities.
+Although we have used several models for this analysis, we find the only one that worked the best is the random forest regression. It is a trustworthy model indeed, yet the current random forest model's evaluation result is only a fair one. There is still space for improvements. Our other models like linear regression, regression tree, and KNN possibly have improvements to make, too. Adjusting the tuning settings for our models is one of our next topics.
 
+This analysis is full of potentials. We only pick a few variable columns from the dataset, leaving others not being used. We can combine the use of other columns with our current ones to check any improvements. For example, the information of hosts is a good target of next step. Price could be affected whether a host is a superhost and how a host describes the living place. And we have not used much of those various rating scores. We can implement more classification algorithms onto those columns to enhance our models and may obtain better evaluation results. We have focused too much on the Airbnb listings' locations, guest requirements, and amenities. 
 
+In the end, location, amenities, and number of accomodates are some crucial factors that are worth to consider for setting an airbnb listing's price, but these are not the all. Price can be given more appropriately if involving some other factors, and such investigation will be our next step.
 
 # References
 
