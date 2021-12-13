@@ -158,6 +158,114 @@ test <-  df_knn[-indexes, ]
 
 # Exploratory Data Analysis
 
+We visualize the distributions of the columns in our dataset in order to gain insight into their influence on price.
+
+## Price
+
+The first thing we look at is our target variable. The histogram of price shows a roughly normal distribution with a heavy right skew, but this is expected for positive bounded variables (price cannot be negative).
+
+```{r}
+ggplot(df,aes(x=price))+ geom_histogram(binwidth=20)+
+coord_cartesian(xlim = c(0, 500)) +
+  theme(axis.text.x = element_text(angle = 90),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
+        plot.title = element_text(color="black", face="bold", size=16, hjust=0),
+        panel.grid.major = element_line(colour = "grey90", size = 0.2),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = 'white'),
+        legend.position = "none")+
+        labs( x="Price", y="Count")+
+        ggtitle("Histogram of Price")
+
+```
+
+## Room type
+
+We first created a box plot to see the distribution of price by room type. In the figure below, there is a price for privacy. The entire place visibly has a higher distribution of price followed by private rooms, hotel rooms, and shared rooms. It should be noted that we can see there is minimal data available for hotels and shared rooms, so it is difficult to define definite conclusions for them compared to the entire place and private room. After that, the table presents the average means of each room type’s listings, ordering in a descending way. The entire place has the highest average price compared to the other three prices.
+
+```{r}
+ggplot(df,aes(x=room_type, y=price))+ geom_boxplot(outlier.shape = NA ) +
+coord_cartesian(ylim = quantile(df$price, c(0.0, .95)))+
+  geom_jitter(width=0.15, alpha=.2, aes(colour=room_type))+
+  theme(axis.text.x = element_text(angle = 90, size=10))+
+  theme(axis.text.x = element_text(angle = 90),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
+        plot.title = element_text(color="black", face="bold", size=16, hjust=0),
+        panel.grid.major = element_line(colour = "grey90", size = 0.2),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = 'white'),
+        legend.position = "none")+
+        labs( x="Room Type", y="Price")+
+        ggtitle("Box Plot of Price Distribution by Room Type")
+```
+## Neighbourhood
+
+To see the affect of neighborhood on price, we create a box plot to show the distribution of Airbnb listing prices across our ten neighborhoods. Displayed below, we see these neighborhoods not only look to have varying means but also varying spreads, suggesting that the price of an Airbnb will be different depending on the selected neighborhood. The ranking of average prices of neighborhoods tells us the highest is in areas like Downtown and Chinatown.
+
+```{r, results='markup'}
+
+#create column for neighborhood name in visualizations
+df$neighbourhood_short <- str_sub(df$neighbourhood,1,15)
+
+#add in column for frequency of listings
+df_freq <- merge(df, data.frame(table(neighbourhood = df$neighbourhood)), by = c("neighbourhood"))
+
+#subset data where frequency is greater than 175
+df_175 <-  df_freq[ which(df_freq$Freq>175), ]
+
+# box plot of price vs neighbourhood
+ggplot(df_175,aes(x=neighbourhood_short, y=price))+ geom_boxplot(outlier.shape = NA ) +
+coord_cartesian(ylim = quantile(df$price, c(.0, .95)))+
+  geom_jitter(width=0.15, alpha=.2, aes(colour=neighbourhood_short))+
+  theme(axis.text.x = element_text(angle = 90, size=9))+
+  theme(axis.text.x = element_text(angle = 90),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
+        
+        plot.title = element_text(color="black", face="bold", size=16, hjust=0),
+        panel.grid.major = element_line(colour = "grey90", size = 0.2),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = 'white'),
+        legend.position = "none")+
+        labs( x="Neighborhood", y="Price")+
+        ggtitle("Box Plot of Price Distribution by Neighborhood")
+
+# delete the new column
+df$neighbourhood_short <- NULL
+```
+
+To look at only the neighborhoods with a large amount of Airbnb listings to compare, we used the descending rank of counts of each neighborhood’s Airbnb listings and pulled the top neighborhoods where each neighborhood’s listing frequency is greater than 175.
+
+## Location
+
+We have longitude and latitude available in our dataset. We plot that according to neighbourhood, with radius of a circle indicating the average price of that location. We can see that as we go eastward, away from the downtown area, the prices tend be lower.
+
+```{r}
+means_df <- df_175 %>%
+  group_by(neighbourhood_short,neighbourhood) %>%
+  summarise_at(vars(c(price, Freq, latitude,longitude)), funs(mean(., na.rm=TRUE)))
+
+#id for neighborhoods
+means_df$ID <- seq.int(nrow(means_df))
+
+pal1 <- colorFactor(topo.colors(length(means_df$neighbourhood_short)), domain = means_df$neighbourhood_short)
+# create leaflet map 
+map <- leaflet(means_df) %>%
+  addTiles() %>%
+  addCircleMarkers(lng = ~longitude,
+                   lat = ~latitude,
+             radius=~sqrt(price),
+                   color=~pal1(neighbourhood_short), stroke = FALSE, 
+                   fillOpacity = 0.7)%>%
+  addLegend("bottomright",pal = pal1, values = ~means_df$neighbourhood_short, opacity = 1, title = "Neighbourhood")
+map %>%  addProviderTiles(providers$CartoDB.Positron)
+```
+
+## Amenities
+
+We also look at all the different amenities that our possible in an AirBnb unit.
 
 ```{r}
 d <- df_knn[,9:70]
@@ -182,8 +290,12 @@ ggplot(data=sums, aes(x=reorder(ammenity, -amount), y=amount)) +
   ggtitle("Distribution of Amenities in DC AirBnBs")
 
 ```
+
 There were 62 different amenities, amongst which we have picked top 15 with the highest frequency. We have made a count plot to analyse the frequency of these top 15 amenities in amongst the different airbnb properties.
+
+
 These amenities are arranged in descending order of their frequency, with Wi-fi having the highest frequency and hair-dryer having the lowest frequency.
+
 ```{r}
 library(corrplot)
 colnames(df_knn)
@@ -192,6 +304,7 @@ m <- cor(df_knn_corr)
 corrplot(m, method = 'shade', diag = FALSE,  tl.cex = 0.7, type="upper", 
          tl.col = "darkblue", tl.srt = 45)
 ```
+
 Our main variable for this entire report is "price". To check which variables have the highest correlation with "price", we have made a correlation plot. 
 From the correlation plot it was observed, that the variable "price" has strongest correlation with "guests accommodated", "number of beds" & "Airbnb room type". 
 Apart from these, we also found some more notable strong correlations,i.e. guest accommodated and number of beds, room type and tv & kitchen and washer.
@@ -200,7 +313,7 @@ All these correlation are very logical can be justified by common sense.
 
 # Modeling
 
-We attempt to create a predictive model for price using the features available. For this we use classical approaches such as linear regression, k-nearest neighbors, regression tree and random forest.
+We have seen from our exploratory data analysis efforts that the features in our dataset do tend to have some influence on price. We attempt to create a predictive model for price using approaches such as linear regression, k-nearest neighbors, regression tree and random forest.
 
 ## Linear Regression
 
