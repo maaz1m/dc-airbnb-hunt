@@ -182,7 +182,8 @@ ggplot(data=sums, aes(x=reorder(ammenity, -amount), y=amount)) +
   ggtitle("Distribution of Amenities in DC AirBnBs")
 
 ```
-
+There were 62 different amenities, amongst which we have picked top 15 with the highest frequency. We have made a count plot to analyse the frequency of these top 15 amenities in amongst the different airbnb properties.
+These amenities are arranged in descending order of their frequency, with Wi-fi having the highest frequency and hair-dryer having the lowest frequency.
 ```{r}
 library(corrplot)
 colnames(df_knn)
@@ -191,6 +192,11 @@ m <- cor(df_knn_corr)
 corrplot(m, method = 'shade', diag = FALSE,  tl.cex = 0.7, type="upper", 
          tl.col = "darkblue", tl.srt = 45)
 ```
+Our main variable for this entire report is "price". To check which variables have the highest correlation with "price", we have made a correlation plot. 
+From the correlation plot it was observed, that the variable "price" has strongest correlation with "guests accommodated", "number of beds" & "Airbnb room type". 
+Apart from these, we also found some more notable strong correlations,i.e. guest accommodated and number of beds, room type and tv & kitchen and washer.
+
+All these correlation are very logical can be justified by common sense. 
 
 # Modeling
 
