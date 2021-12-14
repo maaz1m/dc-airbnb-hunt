@@ -36,9 +36,6 @@ This hot market has many homeowners to consider the option of renting just a por
 
 Renters and travelers  looking to book an Airbnb for a short term or long term rental may have hundreds of options to choose from depending on their preferences and locality. The District of Columbia (DC), for example, offers some 7,800 Airbnb listings to travelers to choose from at any time. In markets like this, property owners must make themselves competitive by trying to offer the best price for their property. 
 
-Throughout this paper, we hope to explore the dataset of all listings in a locality such as DC, to determine how property amenities and  location affect the price of an AirBnB listing. 
-
-
 # SMART Question
 
 For this final project, Team Five owns three properties in DC that we would like to list on AirBnB. Before creating the listing, we need to know what is the most competitive price to list each of our properties at, so we can increase our occupancy rate and make a profit.The question we hope to answer with this project is **"Given certain attributes of a rental property, what is a competitive price to list it on AirBnB?"**
@@ -83,7 +80,7 @@ data.frame(variable = names(df),
 
 The amenities column was not usable as is, so we parse it to create indicator variables for each amenity.
 
-```{r, results = 'show'}
+```{r}
 # remove commas and stuff from amenities
 df$amenities <- tolower(str_replace_all(df$amenities, "[\"\\[\\]]", ""))
 
@@ -332,7 +329,7 @@ The high cardinality of a lot of our factor features leads to the number of vari
 lr_all_features <- summary(lr)$coefficients %>% as.data.frame()
 lr_all_features %>% kable()
 ```
-Of the 116 coefficients, only 27 were found significant for the model. We plot the ten most important features based on magnitude of the coefficients to get a better idea of their contributions to the predictions. We can see that the number of bedrooms drives the price up. We can also see that longitude has a highly negative coefficient, which indicates that as we go westward (longitude increases), the price is expected to decrease. We see thisin the map plot as well.
+Of the 116 coefficients, only 27 were found significant for the model. We plot the ten most important features based on magnitude of the coefficients to get a better idea of their contributions to the predictions. We can see that the number of bedrooms drives the price up. We can also see that longitude has a highly negative coefficient, which indicates that as we go westward (longitude increases), the price is expected to decrease. We see this in the map plot as well.
 
 ```{r}
 lr_top_features <- lr_all_features %>%
@@ -396,7 +393,7 @@ tree_mae <- mean(abs(actual - tree_pred))
 tree_r2 <- R2(actual, tree_pred)
 ```
 
-With a root mean squared error of `r tree_rmse`and mean absolute error of `r tree_mae`, the metrics are somewhat better than that of the linear regression model. The R**2 value is also much higher at `r lr_r2`.
+With a root mean squared error of `r tree_rmse` and mean absolute error of `r tree_mae`, the metrics are somewhat better than that of the linear regression model. The R**2 value is also much higher at `r lr_r2`.
 
 ## K-nearest Neighbours
 
@@ -429,7 +426,7 @@ Feature selection through PCA was considered for this model. Reducing the number
 
 The training dataset for this model was created with 80% split of the numerical dataset. This is used to help us find the best k to use in our training model. When we run the data, while scaling and centering, we find that the best K is 29.
 
-```{r}
+```{r results = 'show'}
 
 #without PCA Preprocessing
 
@@ -477,7 +474,7 @@ knnFit0
 
 With this model, we will now input the test data to measure our model's accuracy to determine just how good of a job it does at predicting price. To do this we will compare the predicted prices outputted from our model against the actual prices in our test data. The summary of our test data is shown below. 
 
-```{r}
+```{r results = 'show'}
 
 summary(test)
 
@@ -717,15 +714,15 @@ df_test = tail(whole, n = 3)
 pred = predict(rf.model2, df_test)
 ```
 
-Here are our predicted prices: one shared room in DuPont Circle for 1 guest is ```r pred[1]```, one private room near Howard University for up to two guests is ```r pred[2]```, and one entire property in Capitol Hill for up to eight guests is ```r pred[3]```.
+Here are our predicted prices: one shared room in Dupont Circle for 1 guest is ```r pred[1]```, one private room near Howard University for up to two guests is ```r pred[2]```, and one entire property in Capitol Hill for up to eight guests is ```r pred[3]```.
 
 # Conclusions
 
 Based on our results of prediction, the results for private room and entire property are reasonable prices due to their settings; however, the one for the shared room is a bit surprising. Perhaps this price results from the good location of Dupont Circle and a nice fireplace. Overall, these results are partially reliable at this state.
 
-Although we have used several models for this analysis, we find the only one that worked the best is the random forest regression. It is a trustworthy model indeed, yet the current random forest model's evaluation result is only a fair one. There is still space for improvements. Our other models like linear regression, regression tree, and KNN possibly have improvements to make, too. Adjusting the tuning settings for our models is one of our next topics.
+Although we have used several models for this analysis, we find the only one that worked the best is the random forest regression. It is a trustworthy model indeed, yet the current random forest model's evaluation result is only a fair one. There is still space for improvements. Our other models like linear regression, regression tree, and KNN possibly have improvements to make, too.
 
-This analysis is full of potentials. We only pick a few variable columns from the dataset, leaving others not being used. We can combine the use of other columns with our current ones to check any improvements. For example, the information of hosts is a good target of next step. Price could be affected whether a host is a superhost and how a host describes the living place. And we have not used much of those various rating scores. We can implement more classification algorithms onto those columns to enhance our models and may obtain better evaluation results. We have focused too much on the Airbnb listings' locations, guest requirements, and amenities. 
+This analysis is full of potentials. We only pick a few variable columns from the dataset, leaving others not being used. We can combine the use of other columns with our current ones to check any improvements. For example, the information of hosts is a good target of next step. Price could be affected whether a host is a superhost and how a host describes the living place. And we have not used much of those various rating scores. We have focused too much on the Airbnb listings' locations, guest requirements, and amenities. 
 
 In the end, location, amenities, and number of accomodates are some crucial factors that are worth to consider for setting an airbnb listing's price, but these are not the all. Price can be given more appropriately if involving some other factors, and such investigation will be our next step.
 
